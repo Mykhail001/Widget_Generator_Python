@@ -55,7 +55,6 @@ class ButtonGenerator(QWidget):
         settings_widget = QWidget()
         settings_widget.setMaximumWidth(400)
         settings_widget.setStyleSheet("background-color: #3C3C3C; border-radius: 10px; padding: 10px;")
-
         layout = QVBoxLayout()
 
         # Заголовок
