@@ -43,6 +43,7 @@ class ButtonGenerator(QWidget):
     def setup_ui(self):
         """Налаштування інтерфейсу"""
         main_layout = QHBoxLayout()
+
         # Ліва панель - настройки
         left_panel = self.create_settings_panel()
         main_layout.addWidget(left_panel, 1)
@@ -50,10 +51,12 @@ class ButtonGenerator(QWidget):
         # Права панель - прев'ю та генеровані кнопки
         right_panel = self.create_preview_panel()
         main_layout.addWidget(right_panel, 2)
+
         self.setLayout(main_layout)
         self.setStyleSheet("background-color: #2C2C2C;")
 
         self.update_preview()
+
     def create_settings_panel(self):
         """Створення панелі налаштувань"""
         settings_widget = QWidget()
@@ -68,32 +71,26 @@ class ButtonGenerator(QWidget):
 
         # Тип віджета
         widget_type_group = QGroupBox("🔘 Widget Type")
-        widget_type_layout = QGridLayout()  # ЗМІНЕНО з QHBoxLayout
+        widget_type_layout = QGridLayout()  # Змінено з QHBoxLayout на QGridLayout
 
         # Перший рядок: Button та Radio Button
         self.button_radio = QCheckBox("Button")
         self.button_radio.setChecked(True)
-        self.button_radio.toggled.connect(
-            lambda checked: self.set_widget_type("button" if checked else self.get_other_widget_type("button")))
+        self.button_radio.toggled.connect(lambda checked: self.set_widget_type("button" if checked else self.get_other_widget_type("button")))
         widget_type_layout.addWidget(self.button_radio, 0, 0)
 
         self.radio_radio = QCheckBox("Radio Button")
-        self.radio_radio.toggled.connect(
-            lambda checked: self.set_widget_type("radio" if checked else self.get_other_widget_type("radio")))
+        self.radio_radio.toggled.connect(lambda checked: self.set_widget_type("radio" if checked else self.get_other_widget_type("radio")))
         widget_type_layout.addWidget(self.radio_radio, 0, 1)
 
         # Другий рядок: Toggle Switch та Slider
         self.toggle_radio = QCheckBox("Toggle Switch")
-        self.toggle_radio.toggled.connect(
-            lambda checked: self.set_widget_type("toggle" if checked else self.get_other_widget_type("toggle")))
+        self.toggle_radio.toggled.connect(lambda checked: self.set_widget_type("toggle" if checked else self.get_other_widget_type("toggle")))
         widget_type_layout.addWidget(self.toggle_radio, 1, 0)
 
         self.slider_radio = QCheckBox("Slider")
-        self.slider_radio.toggled.connect(
-            lambda checked: self.set_widget_type("slider" if checked else self.get_other_widget_type("slider")))
+        self.slider_radio.toggled.connect(lambda checked: self.set_widget_type("slider" if checked else self.get_other_widget_type("slider")))
         widget_type_layout.addWidget(self.slider_radio, 1, 1)
-
-        widget_type_group.setLayout(widget_type_layout)
 
         widget_type_group.setLayout(widget_type_layout)
         layout.addWidget(widget_type_group)
@@ -124,6 +121,7 @@ class ButtonGenerator(QWidget):
         self.height_input.setValue(15)
         basic_layout.addWidget(self.height_input, 2, 1)
 
+        # Орієнтація слайдера
         self.orientation_label = QLabel("Orientation:")
         basic_layout.addWidget(self.orientation_label, 3, 0)
         self.orientation_combo = QComboBox()
@@ -131,8 +129,20 @@ class ButtonGenerator(QWidget):
         self.orientation_combo.currentTextChanged.connect(self.update_preview)
         basic_layout.addWidget(self.orientation_combo, 3, 1)
 
+        # Довжина слайдера
+        self.slider_length_label = QLabel("Track Length:")
+        basic_layout.addWidget(self.slider_length_label, 4, 0)
+        self.slider_length_input = QSpinBox()
+        self.slider_length_input.setRange(10, 60)
+        self.slider_length_input.setValue(30)
+        self.slider_length_input.valueChanged.connect(self.update_preview)
+        basic_layout.addWidget(self.slider_length_input, 4, 1)
+
+        # Приховуємо поля слайдера за замовчуванням
         self.orientation_label.hide()
         self.orientation_combo.hide()
+        self.slider_length_label.hide()
+        self.slider_length_input.hide()
 
         # Підключаємо сигнали після створення всіх елементів
         self.scale_input.valueChanged.connect(self.update_preview)
@@ -255,7 +265,7 @@ class ButtonGenerator(QWidget):
         generated_layout.addWidget(self.scroll_area)
 
         clear_btn = QPushButton("🗑️ Clear All")
-        clear_btn.setStyleSheet("QPushButton { color: white; background-color: #2C2C2C; border: 1px solid #ADB0C4; padding: 5px; }")
+        clear_btn.setStyleSheet("QPushButton { color: white; background-color: #9A9FB4; border: 1px solid #ADB0C4; padding: 5px; }")
         clear_btn.clicked.connect(self.clear_generated_buttons)
         generated_layout.addWidget(clear_btn)
 
@@ -293,13 +303,16 @@ class ButtonGenerator(QWidget):
 
             # Показуємо/приховуємо налаштування залежно від типу
             if widget_type == "button":
-                # Для кнопок показуємо тільки розміри
+                # Для кнопок показуємо розміри
                 self.size_label_width.show()
                 self.size_label_height.show()
                 self.width_input.show()
                 self.height_input.show()
                 self.orientation_label.hide()
                 self.orientation_combo.hide()
+                self.slider_length_label.hide()
+                self.slider_length_input.hide()
+                # Показуємо патерни для кнопок, приховуємо для toggle
                 self.button_pattern_group.show()
                 self.pattern_group.hide()
             elif widget_type == "radio":
@@ -310,8 +323,9 @@ class ButtonGenerator(QWidget):
                 self.height_input.hide()
                 self.orientation_label.hide()
                 self.orientation_combo.hide()
-                self.orientation_label.show()
-                self.orientation_combo.show()
+                self.slider_length_label.hide()
+                self.slider_length_input.hide()
+                # Приховуємо всі патерни для radio
                 self.button_pattern_group.hide()
                 self.pattern_group.hide()
             elif widget_type == "toggle":
@@ -322,16 +336,22 @@ class ButtonGenerator(QWidget):
                 self.height_input.hide()
                 self.orientation_label.hide()
                 self.orientation_combo.hide()
+                self.slider_length_label.hide()
+                self.slider_length_input.hide()
+                # Показуємо патерни для toggle switch, приховуємо для кнопок
                 self.button_pattern_group.hide()
                 self.pattern_group.show()
             elif widget_type == "slider":
-                # Для слайдера приховуємо розміри, показуємо орієнтацію
+                # Для слайдера приховуємо розміри, показуємо орієнтацію та довжину
                 self.size_label_width.hide()
                 self.size_label_height.hide()
                 self.width_input.hide()
                 self.height_input.hide()
                 self.orientation_label.show()
                 self.orientation_combo.show()
+                self.slider_length_label.show()
+                self.slider_length_input.show()
+                # Приховуємо всі патерни
                 self.button_pattern_group.hide()
                 self.pattern_group.hide()
 
@@ -432,10 +452,24 @@ class ButtonGenerator(QWidget):
                 (self.preview_container.height() - self.preview_toggle.height()) // 2
             )
             self.preview_toggle.show()
+
         elif self.current_widget_type == "slider":
+            # Визначаємо розміри підложки залежно від орієнтації
+            orientation = self.orientation_combo.currentText().lower()
+            track_length = self.slider_length_input.value()
+
+            if orientation == 'vertical':
+                track_width = 6      # Фіксована ширина
+                track_height = track_length  # Змінна висота
+            else:  # horizontal
+                track_width = track_length   # Змінна ширина
+                track_height = 6     # Фіксована висота
+
             config = {
                 'scale': self.scale_input.value(),
-                'orientation': self.orientation_combo.currentText().lower(),
+                'orientation': orientation,
+                'track_width': track_width,
+                'track_height': track_height,
                 'has_shadow': True,
                 'slider_button_config': {
                     'button_width': 8,
@@ -595,10 +629,24 @@ class ButtonGenerator(QWidget):
             self.scroll_layout.addWidget(toggle, row, col)
 
             self.generated_toggles.append(toggle)
+
         elif self.current_widget_type == "slider":
+            # Визначаємо розміри підложки залежно від орієнтації
+            orientation = self.orientation_combo.currentText().lower()
+            track_length = self.slider_length_input.value()
+
+            if orientation == 'vertical':
+                track_width = 6      # Фіксована ширина
+                track_height = track_length  # Змінна висота
+            else:  # horizontal
+                track_width = track_length   # Змінна ширина
+                track_height = 6     # Фіксована висота
+
             config = {
                 'scale': self.scale_input.value(),
-                'orientation': self.orientation_combo.currentText().lower(),
+                'orientation': orientation,
+                'track_width': track_width,
+                'track_height': track_height,
                 'has_shadow': True,
                 'slider_button_config': {
                     'button_width': 8,
@@ -606,7 +654,6 @@ class ButtonGenerator(QWidget):
                     'scale': self.scale_input.value(),
                     'border_color': '#413F54',
                     'animation_enabled': False,
-                    # Дефолтні кольори для кнопки слайдера
                     'button_normal': '#9A9FB4',
                     'button_hover': '#9A9FB4',
                     'button_pressed': '#9A9FB4',
@@ -620,9 +667,6 @@ class ButtonGenerator(QWidget):
                     'font_family': 'Minecraftia',
                     'has_shadow': True
                 },
-                # Дефолтні кольори для підложки
-                'track_width': 6,  # Розміри підложки
-                'track_height': 30,
                 'track_border_color': '#F2F2F2',
                 'track_fill_color': '#9A9FB4'
             }
@@ -631,46 +675,40 @@ class ButtonGenerator(QWidget):
             if self.current_config:
                 button_config = config['slider_button_config']
 
-                # Застосовуємо кольори кнопки з пресету
                 if 'button_normal' in self.current_config:
                     button_config['button_normal'] = self.current_config['button_normal']
-                    button_config['button_hover'] = self.current_config['button_normal']  # Без hover ефекту
-                    button_config['button_pressed'] = self.current_config['button_normal']  # Без press ефекту
+                    button_config['button_hover'] = self.current_config['button_normal']
+                    button_config['button_pressed'] = self.current_config['button_normal']
 
                 if 'border_normal' in self.current_config:
                     button_config['border_normal'] = self.current_config['border_normal']
-                    button_config['border_hover'] = self.current_config['border_normal']  # Без hover ефекту
-                    button_config['border_pressed'] = self.current_config['border_normal']  # Без press ефекту
+                    button_config['border_hover'] = self.current_config['border_normal']
+                    button_config['border_pressed'] = self.current_config['border_normal']
 
                 if 'bottom_normal' in self.current_config:
                     button_config['bottom_normal'] = self.current_config['bottom_normal']
-                    button_config['bottom_hover'] = self.current_config['bottom_normal']  # Без hover ефекту
-                    button_config['bottom_pressed'] = self.current_config['bottom_normal']  # Без press ефекту
+                    button_config['bottom_hover'] = self.current_config['bottom_normal']
+                    button_config['bottom_pressed'] = self.current_config['bottom_normal']
 
-                # Застосовуємо колір підложки
                 if 'button_normal' in self.current_config:
                     config['track_fill_color'] = self.current_config['button_normal']
 
-                # Застосовуємо додаткові кольори якщо є в пресеті
                 if 'border_color' in self.current_config:
                     button_config['border_color'] = self.current_config['border_color']
 
-                # Залишаємо стандартний світлий колір бордера підложки
                 config['track_border_color'] = '#F2F2F2'
 
             # Створюємо слайдер
             slider = MinecraftSlider(config)
-
-            # Встановлюємо початкове значення (50%)
             slider.set_value(0.5)
 
             # Обробники подій
             slider.valueChanged.connect(lambda value: print(f"Slider value: {value:.2f}"))
 
-            # Додаткові обробники для демонстрації
             def on_slider_change(value):
                 percentage = int(value * 100)
-                print(f"Slider {slider.config['orientation']}: {percentage}%")
+                length_info = f"length {track_length}px"
+                print(f"Slider {orientation} ({length_info}): {percentage}%")
 
             slider.valueChanged.connect(on_slider_change)
 
@@ -680,11 +718,9 @@ class ButtonGenerator(QWidget):
             col = item_count % 4
             self.scroll_layout.addWidget(slider, row, col)
 
-            # Зберігаємо в список згенерованих слайдерів
             self.generated_sliders.append(slider)
 
-            # Виводимо інформацію про створений слайдер (для відладки)
-            print(f"Generated {config['orientation']} slider with {self.preset_combo.currentText()} preset")
+            print(f"Generated {orientation} slider (length: {track_length}px) with {self.preset_combo.currentText()} preset")
 
     def clear_generated_buttons(self):
         """Очищення згенерованих віджетів"""
@@ -789,9 +825,22 @@ else:
     print("Toggle is OFF")
 '''
         elif self.current_widget_type == "slider":
+            # Визначаємо розміри підложки залежно від орієнтації
+            orientation = self.orientation_combo.currentText().lower()
+            track_length = self.slider_length_input.value()
+
+            if orientation == 'vertical':
+                track_width = 6
+                track_height = track_length
+            else:  # horizontal
+                track_width = track_length
+                track_height = 6
+
             config = {
                 'scale': self.scale_input.value(),
-                'orientation': self.orientation_combo.currentText().lower(),
+                'orientation': orientation,
+                'track_width': track_width,
+                'track_height': track_height,
                 'has_shadow': True,
                 'slider_button_config': {
                     'button_width': 8,
@@ -799,7 +848,6 @@ else:
                     'scale': self.scale_input.value(),
                     'border_color': '#413F54',
                     'animation_enabled': False,
-                    # Дефолтні кольори для кнопки слайдера
                     'button_normal': '#9A9FB4',
                     'button_hover': '#9A9FB4',
                     'button_pressed': '#9A9FB4',
@@ -813,43 +861,38 @@ else:
                     'font_family': 'Minecraftia',
                     'has_shadow': True
                 },
-                # Дефолтні кольори для підложки
                 'track_border_color': '#F2F2F2',
                 'track_fill_color': '#9A9FB4'
             }
+
+            # Застосовуємо поточні стилі з пресету
             if self.current_config:
                 button_config = config['slider_button_config']
 
-                # Застосовуємо кольори кнопки з пресету
                 if 'button_normal' in self.current_config:
                     button_config['button_normal'] = self.current_config['button_normal']
-                    button_config['button_hover'] = self.current_config['button_normal']  # Без hover ефекту
-                    button_config['button_pressed'] = self.current_config['button_normal']  # Без press ефекту
+                    button_config['button_hover'] = self.current_config['button_normal']
+                    button_config['button_pressed'] = self.current_config['button_normal']
 
                 if 'border_normal' in self.current_config:
                     button_config['border_normal'] = self.current_config['border_normal']
-                    button_config['border_hover'] = self.current_config['border_normal']  # Без hover ефекту
-                    button_config['border_pressed'] = self.current_config['border_normal']  # Без press ефекту
+                    button_config['border_hover'] = self.current_config['border_normal']
+                    button_config['border_pressed'] = self.current_config['border_normal']
 
                 if 'bottom_normal' in self.current_config:
                     button_config['bottom_normal'] = self.current_config['bottom_normal']
-                    button_config['bottom_hover'] = self.current_config['bottom_normal']  # Без hover ефекту
-                    button_config['bottom_pressed'] = self.current_config['bottom_normal']  # Без press ефекту
+                    button_config['bottom_hover'] = self.current_config['bottom_normal']
+                    button_config['bottom_pressed'] = self.current_config['bottom_normal']
 
-                # Застосовуємо колір підложки
                 if 'button_normal' in self.current_config:
                     config['track_fill_color'] = self.current_config['button_normal']
 
-                # Застосовуємо колір бордера підложки (якщо є в пресеті)
-                if 'border_normal' in self.current_config:
-                    config['track_border_color'] = '#F2F2F2'  # Залишаємо стандартний світлий колір
-
-            orientation = self.orientation_combo.currentText().lower()
             preset_name = self.preset_combo.currentText()
 
             code = f'''# Generated Minecraft Slider Code
 # Preset: {preset_name}
 # Orientation: {orientation}
+# Track Length: {track_length} proportional pixels
 
 slider_config = {config}
 
@@ -874,10 +917,11 @@ slider.set_orientation("{orientation}")  # "vertical" або "horizontal"
 
 # Обробник події зміни значення з детальною інформацією
 def on_slider_changed(value):
-    print(f"Slider changed to: {{value:.2f}} ({{value*100:.0f}}%)")
+    print(f"Slider {{'{orientation}'}} (length: {track_length}px): {{value:.2f}} ({{value*100:.0f}}%)")
 
 slider.valueChanged.connect(on_slider_changed)
 '''
+
         # Показуємо код у діалозі
         dialog = QWidget()
         dialog.setWindowTitle("Generated Code")
@@ -886,7 +930,7 @@ slider.valueChanged.connect(on_slider_changed)
 
         code_text = QTextEdit()
         code_text.setPlainText(code)
-        code_text.setStyleSheet("background-color: #1E1E1E; color: #FFFFFF; font-family: monospace;")
+        code_text.setStyleSheet("background-color: #F5F5F5; color: #000000; font-family: monospace;")
         layout.addWidget(code_text)
 
         dialog.setLayout(layout)
@@ -894,4 +938,3 @@ slider.valueChanged.connect(on_slider_changed)
 
         # Зберігаємо посилання, щоб діалог не зник
         self.code_dialog = dialog
-
