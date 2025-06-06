@@ -33,5 +33,5 @@ def main():
         import traceback
         traceback.print_exc()
 
-if __name__ == "__main__":  # Виправлено: подвійні підкреслення замість зірочок
+if __name__ == "__main__":
     main()
