@@ -1,19 +1,13 @@
 """
-Оновлений managers/button_pattern_manager.py з новим патерном Question
+    Pattern manager for regular buttons
+    Supports pattern overlay on buttons anchored to the top-left corner
 """
-
 class ButtonPatternManager:
-    """
-    Менеджер патернів для звичайних кнопок
-
-    Підтримує накладання патернів на кнопки з прив'язкою до лівого верхнього кута
-    """
-
     @staticmethod
     def get_patterns():
-        """Повертає словник з усіма доступними патернами для кнопок"""
+        """Returns dictionary with all available patterns for buttons"""
         return {
-            'None': None,  # Без патерну
+            'None': None,  # No pattern
             'Configure': [
                 "0000000000000000",
                 "0000000000000000",
@@ -90,9 +84,9 @@ class ButtonPatternManager:
 
     @staticmethod
     def get_pattern_colors():
-        """Повертає кольори для символів патернів кнопок"""
+        """Returns colors for pattern symbols in buttons"""
         return {
-            '0': None,           # Прозорий
-            'W': '#F2F2F2',      # Світлий (242, 242, 242)
-            'B': '#4D4D67'       # Темний (77, 77, 103)
+            '0': None,           # Transparent
+            'W': '#F2F2F2',      # Light (242, 242, 242)
+            'B': '#4D4D67'       # Dark (77, 77, 103)
         }
