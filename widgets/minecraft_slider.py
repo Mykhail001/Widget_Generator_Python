@@ -1,5 +1,5 @@
 """
-Повністю виправлений widgets/minecraft_slider.py
+Виправлений widgets/minecraft_slider.py з фіксом горизонтального режиму
 """
 from PyQt6.QtWidgets import QFrame
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -52,6 +52,7 @@ class MinecraftSlider(QFrame):
                     self.config['slider_button_config'].update(value)
                 else:
                     self.config[key] = value
+
         self.value = 0.0  # Поточне значення (0.0 - 1.0)
         self.dragging = False
         self.drag_offset = 0
@@ -63,13 +64,9 @@ class MinecraftSlider(QFrame):
         self.scale = self.config['scale']
         self.orientation = self.config['orientation']
 
-        # Розрахунок розмірів підложки
-        if self.orientation == 'vertical':
-            track_width = self.config['track_width']
-            track_height = self.config['track_height']
-        else:  # horizontal
-            track_width = self.config['track_height']  # Міняємо місцями
-            track_height = self.config['track_width']
+        # Розрахунок розмірів підложки (БЕЗ зміни місцями для horizontal!)
+        track_width = self.config['track_width']   # Використовуємо як є
+        track_height = self.config['track_height'] # Використовуємо як є
 
         # Загальні розміри з бордерами (тільки світлі бордери)
         self.track_width = (track_width + 2) * self.scale
@@ -79,7 +76,7 @@ class MinecraftSlider(QFrame):
         if self.orientation == 'vertical':
             widget_width = max(self.track_width, 12 * self.scale)  # Більше місця для повзунка
             widget_height = self.track_height + 2 * self.scale  # Невеликий відступ
-        else:
+        else:  # horizontal
             widget_width = self.track_width + 2 * self.scale  # Невеликий відступ
             widget_height = max(self.track_height, 10 * self.scale)  # Більше місця для повзунка
 
@@ -89,7 +86,6 @@ class MinecraftSlider(QFrame):
         self.create_track()
         self.create_slider_button()
         self.update_slider_position()
-        self.slider_button.update_styles()
 
     def create_track(self):
         """Створення підложки слайдера"""
@@ -137,6 +133,9 @@ class MinecraftSlider(QFrame):
         self.slider_button.mouseReleaseEvent = self.button_mouse_release
         self.slider_button.enterEvent = lambda event: None  # Відключаємо hover
         self.slider_button.leaveEvent = lambda event: None  # Відключаємо hover
+
+        # Примусово оновлюємо стилі кнопки
+        self.slider_button.update_styles()
 
     def button_mouse_press(self, event):
         """Обробка натискання на повзунок"""
