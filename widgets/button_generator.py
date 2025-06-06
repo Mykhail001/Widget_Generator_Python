@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
-from managers import PatternManager, ButtonPatternManager, ButtonPresetManager
+from managers import TogglePatternManager, ButtonPatternManager, ButtonPresetManager
 from .minecraft_button import MinecraftButton
 from .minecraft_radio_button import MinecraftRadioButton, MinecraftRadioGroup
 from .minecraft_toggle_button import MinecraftToggleButton
@@ -172,7 +172,7 @@ class ButtonGenerator(QWidget):
         pattern_layout = QVBoxLayout()
 
         self.pattern_combo = QComboBox()
-        self.pattern_combo.addItems(PatternManager.get_patterns().keys())
+        self.pattern_combo.addItems(TogglePatternManager.get_patterns().keys())
         self.pattern_combo.setCurrentText('Standard')  # Стандартний патерн за замовчуванням
         self.pattern_combo.currentTextChanged.connect(self.apply_pattern)
         pattern_layout.addWidget(self.pattern_combo)

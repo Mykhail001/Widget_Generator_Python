@@ -4,7 +4,7 @@ Minecraft-стильний перемикач (toggle switch)
 from PyQt6.QtWidgets import QFrame
 from PyQt6.QtCore import Qt, pyqtSignal
 
-from managers import PatternManager
+from managers import TogglePatternManager
 from .minecraft_button import MinecraftButton
 
 class MinecraftToggleButton(QFrame):
@@ -103,8 +103,8 @@ class MinecraftToggleButton(QFrame):
         """Створення патерну на підложці"""
         self.clear_pattern()  # Очищаємо попередній патерн
 
-        patterns = PatternManager.get_patterns()
-        colors = PatternManager.get_pattern_colors()
+        patterns = TogglePatternManager.get_patterns()
+        colors = TogglePatternManager.get_pattern_colors()
 
         if self.pattern_name not in patterns or patterns[self.pattern_name] is None:
             return  # Немає патерну
