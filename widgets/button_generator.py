@@ -1,5 +1,5 @@
 """
-Головний генератор кнопок - інтерфейс програми
+Головний генератор кнопок - інтерфейс програми з підтримкою Entry
 """
 import sys
 from PyQt6.QtWidgets import (
@@ -14,10 +14,11 @@ from .minecraft_button import MinecraftButton
 from .minecraft_radio_button import MinecraftRadioButton, MinecraftRadioGroup
 from .minecraft_toggle_button import MinecraftToggleButton
 from .minecraft_slider import MinecraftSlider
+from .minecraft_entry import MinecraftEntry
 
 class ButtonGenerator(QWidget):
     """
-    Головний генератор кнопок
+    Головний генератор кнопок з підтримкою всіх віджетів
     """
 
     def __init__(self):
@@ -31,11 +32,13 @@ class ButtonGenerator(QWidget):
         self.preview_radio2 = None
         self.preview_toggle = None
         self.preview_slider = None
+        self.preview_entry = None
         self.preview_group = None
         self.generated_buttons = []
         self.generated_radios = []
         self.generated_toggles = []
         self.generated_sliders = []
+        self.generated_entries = []
         self.code_dialog = None
 
         self.setup_ui()
@@ -69,11 +72,11 @@ class ButtonGenerator(QWidget):
         title.setStyleSheet("font-size: 18px; font-weight: bold; color: #4CAF50; padding: 10px;")
         layout.addWidget(title)
 
-        # Тип віджета
+        # Тип віджета - 3x2 розташування
         widget_type_group = QGroupBox("🔘 Widget Type")
-        widget_type_layout = QGridLayout()  # Змінено з QHBoxLayout на QGridLayout
+        widget_type_layout = QGridLayout()
 
-        # Перший рядок: Button та Radio Button
+        # Перший рядок: Button, Radio Button, Entry
         self.button_radio = QCheckBox("Button")
         self.button_radio.setChecked(True)
         self.button_radio.toggled.connect(lambda checked: self.set_widget_type("button" if checked else self.get_other_widget_type("button")))
@@ -83,7 +86,11 @@ class ButtonGenerator(QWidget):
         self.radio_radio.toggled.connect(lambda checked: self.set_widget_type("radio" if checked else self.get_other_widget_type("radio")))
         widget_type_layout.addWidget(self.radio_radio, 0, 1)
 
-        # Другий рядок: Toggle Switch та Slider
+        self.entry_radio = QCheckBox("Entry")
+        self.entry_radio.toggled.connect(lambda checked: self.set_widget_type("entry" if checked else self.get_other_widget_type("entry")))
+        widget_type_layout.addWidget(self.entry_radio, 0, 2)
+
+        # Другий рядок: Toggle Switch, Slider
         self.toggle_radio = QCheckBox("Toggle Switch")
         self.toggle_radio.toggled.connect(lambda checked: self.set_widget_type("toggle" if checked else self.get_other_widget_type("toggle")))
         widget_type_layout.addWidget(self.toggle_radio, 1, 0)
@@ -104,6 +111,7 @@ class ButtonGenerator(QWidget):
         self.scale_input = QSpinBox()
         self.scale_input.setRange(4, 16)
         self.scale_input.setValue(8)
+        self.scale_input.valueChanged.connect(self.update_preview)
         basic_layout.addWidget(self.scale_input, 0, 1)
 
         # Розмір кнопки (в пропорційних пікселях) - тільки для звичайних кнопок
@@ -112,6 +120,7 @@ class ButtonGenerator(QWidget):
         self.width_input = QSpinBox()
         self.width_input.setRange(4, 32)
         self.width_input.setValue(16)
+        self.width_input.valueChanged.connect(self.update_preview)
         basic_layout.addWidget(self.width_input, 1, 1)
 
         self.size_label_height = QLabel("Button Height:")
@@ -119,6 +128,7 @@ class ButtonGenerator(QWidget):
         self.height_input = QSpinBox()
         self.height_input.setRange(4, 32)
         self.height_input.setValue(15)
+        self.height_input.valueChanged.connect(self.update_preview)
         basic_layout.addWidget(self.height_input, 2, 1)
 
         # Орієнтація слайдера
@@ -143,11 +153,6 @@ class ButtonGenerator(QWidget):
         self.orientation_combo.hide()
         self.slider_length_label.hide()
         self.slider_length_input.hide()
-
-        # Підключаємо сигнали після створення всіх елементів
-        self.scale_input.valueChanged.connect(self.update_preview)
-        self.width_input.valueChanged.connect(self.update_preview)
-        self.height_input.valueChanged.connect(self.update_preview)
 
         basic_group.setLayout(basic_layout)
         layout.addWidget(basic_group)
@@ -201,10 +206,8 @@ class ButtonGenerator(QWidget):
 
         self.animation_check = QCheckBox("Enable Press Animation")
         self.animation_check.setChecked(True)
-        options_layout.addWidget(self.animation_check)
-
-        # Підключаємо сигнали checkboxes
         self.animation_check.toggled.connect(self.update_preview)
+        options_layout.addWidget(self.animation_check)
 
         options_group.setLayout(options_layout)
         layout.addWidget(options_group)
@@ -243,7 +246,7 @@ class ButtonGenerator(QWidget):
         preview_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.preview_container = QWidget()
-        self.preview_container.setFixedSize(400, 200)  # Збільшуємо ширину як у згенерованих віджетів
+        self.preview_container.setFixedSize(400, 200)
         self.preview_container.setStyleSheet("background-color: #CBCCD4;")
         preview_layout.addWidget(self.preview_container)
 
@@ -280,6 +283,7 @@ class ButtonGenerator(QWidget):
         checkboxes = {
             "button": self.button_radio,
             "radio": self.radio_radio,
+            "entry": self.entry_radio,
             "toggle": self.toggle_radio,
             "slider": self.slider_radio
         }
@@ -298,6 +302,7 @@ class ButtonGenerator(QWidget):
             # Оновлюємо checkboxes (тільки один може бути вибраний)
             self.button_radio.setChecked(widget_type == "button")
             self.radio_radio.setChecked(widget_type == "radio")
+            self.entry_radio.setChecked(widget_type == "entry")
             self.toggle_radio.setChecked(widget_type == "toggle")
             self.slider_radio.setChecked(widget_type == "slider")
 
@@ -326,6 +331,19 @@ class ButtonGenerator(QWidget):
                 self.slider_length_label.hide()
                 self.slider_length_input.hide()
                 # Приховуємо всі патерни для radio
+                self.button_pattern_group.hide()
+                self.pattern_group.hide()
+            elif widget_type == "entry":
+                # Для entry приховуємо всі налаштування розмірів та патернів
+                self.size_label_width.hide()
+                self.size_label_height.hide()
+                self.width_input.hide()
+                self.height_input.hide()
+                self.orientation_label.hide()
+                self.orientation_combo.hide()
+                self.slider_length_label.hide()
+                self.slider_length_input.hide()
+                # Приховуємо всі патерни
                 self.button_pattern_group.hide()
                 self.pattern_group.hide()
             elif widget_type == "toggle":
@@ -360,21 +378,17 @@ class ButtonGenerator(QWidget):
     def update_preview(self):
         """Оновлення превью віджета"""
         # Видаляємо старі віджети
-        if self.preview_button:
-            self.preview_button.deleteLater()
-            self.preview_button = None
-        if self.preview_radio:
-            self.preview_radio.deleteLater()
-            self.preview_radio = None
-        if self.preview_radio2:
-            self.preview_radio2.deleteLater()
-            self.preview_radio2 = None
-        if self.preview_toggle:
-            self.preview_toggle.deleteLater()
-            self.preview_toggle = None
-        if self.preview_slider:
-            self.preview_slider.deleteLater()
-            self.preview_slider = None
+        for widget in [self.preview_button, self.preview_radio, self.preview_radio2,
+                      self.preview_toggle, self.preview_slider, self.preview_entry]:
+            if widget:
+                widget.deleteLater()
+
+        self.preview_button = None
+        self.preview_radio = None
+        self.preview_radio2 = None
+        self.preview_toggle = None
+        self.preview_slider = None
+        self.preview_entry = None
 
         # Створюємо конфігурацію залежно від типу віджета
         if self.current_widget_type == "button":
@@ -383,14 +397,11 @@ class ButtonGenerator(QWidget):
                 'button_height': self.height_input.value(),
                 'scale': self.scale_input.value(),
                 'animation_enabled': self.animation_check.isChecked(),
-                'has_shadow': True  # Завжди ввімкнено
+                'has_shadow': True
             }
             config.update(self.current_config)
 
-            # Створюємо нову кнопку без тексту
             self.preview_button = MinecraftButton('', config, self.preview_container)
-
-            # Застосовуємо вибраний патерн
             button_pattern_name = self.button_pattern_combo.currentText()
             self.preview_button.set_pattern(button_pattern_name)
 
@@ -402,17 +413,15 @@ class ButtonGenerator(QWidget):
 
         elif self.current_widget_type == "radio":
             config = {
-                'text': "",  # Без тексту для демонстрації
+                'text': "",
                 'scale': self.scale_input.value(),
-                'has_shadow': True  # Завжди ввімкнено
+                'has_shadow': True
             }
             config.update(self.current_config)
 
-            # Створюємо два радіо для демонстрації
             self.preview_radio = MinecraftRadioButton("", config, self.preview_container)
             self.preview_radio2 = MinecraftRadioButton("", config, self.preview_container)
 
-            # Позиціонуємо їх поруч
             radio_spacing = 20
             total_width = self.preview_radio.width() * 2 + radio_spacing
             start_x = (self.preview_container.width() - total_width) // 2
@@ -421,11 +430,9 @@ class ButtonGenerator(QWidget):
             self.preview_radio.move(start_x, y_pos)
             self.preview_radio2.move(start_x + self.preview_radio.width() + radio_spacing, y_pos)
 
-            # Один вибраний, другий ні
             self.preview_radio.set_selected(True)
             self.preview_radio2.set_selected(False)
 
-            # Створюємо групу для демонстрації функціональності
             self.preview_group = MinecraftRadioGroup()
             self.preview_group.add_radio_button(self.preview_radio)
             self.preview_group.add_radio_button(self.preview_radio2)
@@ -433,17 +440,31 @@ class ButtonGenerator(QWidget):
             self.preview_radio.show()
             self.preview_radio2.show()
 
-        elif self.current_widget_type == "toggle":
+        elif self.current_widget_type == "entry":
             config = {
+                'entry_width': 50,  # Компактна ширина
+                'entry_height': 10, # Компактна висота з відступом знизу
                 'scale': self.scale_input.value(),
-                'has_shadow': True  # Завжди ввімкнено
+                'placeholder': "Sample text..."
             }
             config.update(self.current_config)
 
-            # Створюємо перемикач (без тексту)
-            self.preview_toggle = MinecraftToggleButton(config, self.preview_container)
+            self.preview_entry = MinecraftEntry(placeholder="Sample text...", style_config=config, parent=self.preview_container)
 
-            # Застосовуємо вибраний патерн
+            self.preview_entry.move(
+                (self.preview_container.width() - self.preview_entry.width()) // 2,
+                (self.preview_container.height() - self.preview_entry.height()) // 2
+            )
+            self.preview_entry.show()
+
+        elif self.current_widget_type == "toggle":
+            config = {
+                'scale': self.scale_input.value(),
+                'has_shadow': True
+            }
+            config.update(self.current_config)
+
+            self.preview_toggle = MinecraftToggleButton(config, self.preview_container)
             pattern_name = self.pattern_combo.currentText()
             self.preview_toggle.set_pattern(pattern_name)
 
@@ -454,16 +475,15 @@ class ButtonGenerator(QWidget):
             self.preview_toggle.show()
 
         elif self.current_widget_type == "slider":
-            # Визначаємо розміри підложки залежно від орієнтації
             orientation = self.orientation_combo.currentText().lower()
             track_length = self.slider_length_input.value()
 
             if orientation == 'vertical':
-                track_width = 6      # Фіксована ширина
-                track_height = track_length  # Змінна висота
-            else:  # horizontal
-                track_width = track_length   # Змінна ширина
-                track_height = 6     # Фіксована висота
+                track_width = 6
+                track_height = track_length
+            else:
+                track_width = track_length
+                track_height = 6
 
             config = {
                 'scale': self.scale_input.value(),
@@ -480,25 +500,20 @@ class ButtonGenerator(QWidget):
                 }
             }
 
-            # Застосовуємо поточні стилі з пресету
             if self.current_config:
                 button_config = config['slider_button_config']
-
                 if 'button_normal' in self.current_config:
                     button_config['button_normal'] = self.current_config['button_normal']
                     button_config['button_hover'] = self.current_config['button_normal']
                     button_config['button_pressed'] = self.current_config['button_normal']
-
                 if 'border_normal' in self.current_config:
                     button_config['border_normal'] = self.current_config['border_normal']
                     button_config['border_hover'] = self.current_config['border_normal']
                     button_config['border_pressed'] = self.current_config['border_normal']
-
                 if 'bottom_normal' in self.current_config:
                     button_config['bottom_normal'] = self.current_config['bottom_normal']
                     button_config['bottom_hover'] = self.current_config['bottom_normal']
                     button_config['bottom_pressed'] = self.current_config['bottom_normal']
-
                 if 'button_normal' in self.current_config:
                     config['track_fill_color'] = self.current_config['button_normal']
 
@@ -522,14 +537,12 @@ class ButtonGenerator(QWidget):
         """Застосування патерну для toggle switch"""
         if self.current_widget_type == "toggle" and self.preview_toggle:
             self.preview_toggle.set_pattern(pattern_name)
-            # Оновлюємо превью
             self.update_preview()
 
     def apply_button_pattern(self, pattern_name):
         """Застосування патерну для кнопки"""
         if self.current_widget_type == "button" and self.preview_button:
             self.preview_button.set_pattern(pattern_name)
-            # Патерн автоматично відобразиться без повного оновлення превью
 
     def generate_widget(self):
         """Генерація нового віджета"""
@@ -539,60 +552,48 @@ class ButtonGenerator(QWidget):
                 'button_height': self.height_input.value(),
                 'scale': self.scale_input.value(),
                 'animation_enabled': self.animation_check.isChecked(),
-                'has_shadow': True  # Завжди ввімкнено
+                'has_shadow': True
             }
             config.update(self.current_config)
 
-            # Створюємо кнопку без тексту
             button = MinecraftButton('', config)
-
-            # Застосовуємо вибраний патерн
             button_pattern_name = self.button_pattern_combo.currentText()
             button.set_pattern(button_pattern_name)
-
             button.clicked.connect(lambda: print("Button clicked!"))
 
-            # Додаємо до сітки
             item_count = self.scroll_layout.count()
             row = item_count // 4
             col = item_count % 4
             self.scroll_layout.addWidget(button, row, col)
-
             self.generated_buttons.append(button)
 
         elif self.current_widget_type == "radio":
             config = {
-                'text': "",  # Без тексту для радіокнопок
+                'text': "",
                 'scale': self.scale_input.value(),
-                'has_shadow': True  # Завжди ввімкнено
+                'has_shadow': True
             }
             config.update(self.current_config)
 
-            # Створюємо дві радіокнопки
             radio1 = MinecraftRadioButton("", config)
             radio2 = MinecraftRadioButton("", config)
 
-            # Налаштовуємо групу
             radio_group = MinecraftRadioGroup()
             radio_group.add_radio_button(radio1)
             radio_group.add_radio_button(radio2)
 
-            # Один вибраний, другий ні
             radio1.set_selected(True)
             radio2.set_selected(False)
 
-            # Обробники подій
             radio1.clicked.connect(lambda: print("Radio 1 clicked!"))
             radio2.clicked.connect(lambda: print("Radio 2 clicked!"))
             radio1.stateChanged.connect(lambda selected: print(f"Radio 1 {'selected' if selected else 'deselected'}"))
             radio2.stateChanged.connect(lambda selected: print(f"Radio 2 {'selected' if selected else 'deselected'}"))
 
-            # Додаємо до сітки (поруч один з одним)
             item_count = self.scroll_layout.count()
             row = item_count // 4
             col = item_count % 4
 
-            # Створюємо контейнер для двох радіокнопок
             radio_container = QWidget()
             radio_layout = QHBoxLayout(radio_container)
             radio_layout.setSpacing(10)
@@ -601,238 +602,57 @@ class ButtonGenerator(QWidget):
             radio_layout.addWidget(radio2)
 
             self.scroll_layout.addWidget(radio_container, row, col)
-
-            # Зберігаємо контейнер і групу для подальшого видалення
             self.generated_radios.extend([radio_container, radio_group])
+
+        elif self.current_widget_type == "entry":
+            config = {
+                'entry_width': 60,
+                'entry_height': 12,
+                'scale': self.scale_input.value(),
+                'placeholder': "Enter text..."
+            }
+            config.update(self.current_config)
+
+            entry = MinecraftEntry(placeholder="Enter text...", style_config=config)
+            entry.textChanged.connect(lambda text: print(f"Entry text changed: {text}"))
+            entry.returnPressed.connect(lambda: print(f"Entry submitted: {entry.get_text()}"))
+
+            item_count = self.scroll_layout.count()
+            row = item_count // 4
+            col = item_count % 4
+            self.scroll_layout.addWidget(entry, row, col)
+
+            self.generated_entries.append(entry)
+            print(f"Generated Entry with {self.preset_combo.currentText()} preset")
 
         elif self.current_widget_type == "toggle":
             config = {
                 'scale': self.scale_input.value(),
-                'has_shadow': True  # Завжди ввімкнено
+                'has_shadow': True
             }
             config.update(self.current_config)
 
-            # Створюємо перемикач (без тексту)
             toggle = MinecraftToggleButton(config)
-
-            # Застосовуємо вибраний патерн
             pattern_name = self.pattern_combo.currentText()
             toggle.set_pattern(pattern_name)
 
             toggle.clicked.connect(lambda: print("Toggle clicked!"))
             toggle.stateChanged.connect(lambda toggled: print(f"Toggle {'ON' if toggled else 'OFF'}"))
 
-            # Додаємо до сітки
             item_count = self.scroll_layout.count()
             row = item_count // 4
             col = item_count % 4
             self.scroll_layout.addWidget(toggle, row, col)
-
             self.generated_toggles.append(toggle)
 
         elif self.current_widget_type == "slider":
-            # Визначаємо розміри підложки залежно від орієнтації
-            orientation = self.orientation_combo.currentText().lower()
-            track_length = self.slider_length_input.value()
-
-            if orientation == 'vertical':
-                track_width = 6      # Фіксована ширина
-                track_height = track_length  # Змінна висота
-            else:  # horizontal
-                track_width = track_length   # Змінна ширина
-                track_height = 6     # Фіксована висота
-
-            config = {
-                'scale': self.scale_input.value(),
-                'orientation': orientation,
-                'track_width': track_width,
-                'track_height': track_height,
-                'has_shadow': True,
-                'slider_button_config': {
-                    'button_width': 8,
-                    'button_height': 6,
-                    'scale': self.scale_input.value(),
-                    'border_color': '#413F54',
-                    'animation_enabled': False,
-                    'button_normal': '#9A9FB4',
-                    'button_hover': '#9A9FB4',
-                    'button_pressed': '#9A9FB4',
-                    'border_normal': '#ADB0C4',
-                    'border_hover': '#ADB0C4',
-                    'border_pressed': '#ADB0C4',
-                    'bottom_normal': '#9A9FB4',
-                    'bottom_hover': '#9A9FB4',
-                    'bottom_pressed': '#9A9FB4',
-                    'text_color': 'white',
-                    'font_family': 'Minecraftia',
-                    'has_shadow': True
-                },
-                'track_border_color': '#F2F2F2',
-                'track_fill_color': '#9A9FB4'
-            }
-
-            # Застосовуємо поточні стилі з пресету
-            if self.current_config:
-                button_config = config['slider_button_config']
-
-                if 'button_normal' in self.current_config:
-                    button_config['button_normal'] = self.current_config['button_normal']
-                    button_config['button_hover'] = self.current_config['button_normal']
-                    button_config['button_pressed'] = self.current_config['button_normal']
-
-                if 'border_normal' in self.current_config:
-                    button_config['border_normal'] = self.current_config['border_normal']
-                    button_config['border_hover'] = self.current_config['border_normal']
-                    button_config['border_pressed'] = self.current_config['border_normal']
-
-                if 'bottom_normal' in self.current_config:
-                    button_config['bottom_normal'] = self.current_config['bottom_normal']
-                    button_config['bottom_hover'] = self.current_config['bottom_normal']
-                    button_config['bottom_pressed'] = self.current_config['bottom_normal']
-
-                if 'button_normal' in self.current_config:
-                    config['track_fill_color'] = self.current_config['button_normal']
-
-                if 'border_color' in self.current_config:
-                    button_config['border_color'] = self.current_config['border_color']
-
-                config['track_border_color'] = '#F2F2F2'
-
-            # Створюємо слайдер
-            slider = MinecraftSlider(config)
-            slider.set_value(0.5)
-
-            # Обробники подій
-            slider.valueChanged.connect(lambda value: print(f"Slider value: {value:.2f}"))
-
-            def on_slider_change(value):
-                percentage = int(value * 100)
-                length_info = f"length {track_length}px"
-                print(f"Slider {orientation} ({length_info}): {percentage}%")
-
-            slider.valueChanged.connect(on_slider_change)
-
-            # Додаємо до сітки
-            item_count = self.scroll_layout.count()
-            row = item_count // 4
-            col = item_count % 4
-            self.scroll_layout.addWidget(slider, row, col)
-
-            self.generated_sliders.append(slider)
-
-            print(f"Generated {orientation} slider (length: {track_length}px) with {self.preset_combo.currentText()} preset")
-
-    def clear_generated_buttons(self):
-        """Очищення згенерованих віджетів"""
-        # Очищаємо всі елементи зі scroll_layout
-        for i in reversed(range(self.scroll_layout.count())):
-            item = self.scroll_layout.itemAt(i)
-            if item:
-                widget = item.widget()
-                if widget:
-                    widget.deleteLater()
-
-        self.generated_buttons.clear()
-        self.generated_radios.clear()
-        self.generated_toggles.clear()
-        self.generated_sliders.clear()
-
-    def save_preset(self):
-        """Збереження пресету"""
-        # Тут можна додати логіку збереження
-        QMessageBox.information(self, "Info", "Preset saved! (Demo)")
-
-    def export_code(self):
-        """Експорт коду"""
-        if self.current_widget_type == "button":
-            config = {
-                'button_width': self.width_input.value(),
-                'button_height': self.height_input.value(),
-                'scale': self.scale_input.value(),
-                'animation_enabled': self.animation_check.isChecked(),
-                'has_shadow': True  # Завжди ввімкнено
-            }
-            config.update(self.current_config)
-            button_pattern_name = self.button_pattern_combo.currentText()
-
-            code = f'''# Generated Minecraft Button Code (without text)
-button_config = {config}
-button = MinecraftButton("", button_config)
-
-# Застосування патерну
-button.set_pattern("{button_pattern_name}")
-
-button.clicked.connect(lambda: print("Button clicked!"))
-'''
-        elif self.current_widget_type == "radio":
-            config = {
-                'text': "",  # Без тексту для радіокнопок
-                'scale': self.scale_input.value(),
-                'has_shadow': True  # Завжди ввімкнено
-            }
-            config.update(self.current_config)
-
-            code = f'''# Generated Minecraft Radio Buttons Code
-radio_config = {config}
-
-# Створення двох радіокнопок
-radio1 = MinecraftRadioButton("", radio_config)
-radio2 = MinecraftRadioButton("", radio_config)
-
-# Створення групи радіокнопок (тільки одна може бути вибрана)
-radio_group = MinecraftRadioGroup()
-radio_group.add_radio_button(radio1)
-radio_group.add_radio_button(radio2)
-
-# Встановлення початкового стану
-radio1.set_selected(True)
-radio2.set_selected(False)
-
-# Обробники подій
-radio1.clicked.connect(lambda: print("Radio 1 clicked!"))
-radio2.clicked.connect(lambda: print("Radio 2 clicked!"))
-radio1.stateChanged.connect(lambda selected: print(f"Radio 1 {{''selected'' if selected else ''deselected''}}"))
-radio2.stateChanged.connect(lambda selected: print(f"Radio 2 {{''selected'' if selected else ''deselected''}}"))
-'''
-        elif self.current_widget_type == "toggle":
-            config = {
-                'scale': self.scale_input.value(),
-                'has_shadow': True  # Завжди ввімкнено
-            }
-            config.update(self.current_config)
-            pattern_name = self.pattern_combo.currentText()
-
-            code = f'''# Generated Minecraft Toggle Switch Code
-toggle_config = {config}
-
-# Створення перемикача (без тексту)
-toggle = MinecraftToggleButton(toggle_config)
-
-# Застосування патерну
-toggle.set_pattern("{pattern_name}")
-
-# Встановлення початкового стану (за замовчуванням вимкнено)
-toggle.set_toggled(False)
-
-# Обробники подій
-toggle.clicked.connect(lambda: print("Toggle clicked!"))
-toggle.stateChanged.connect(lambda toggled: print(f"Toggle {{''ON'' if toggled else ''OFF''}}"))
-
-# Перевірка стану
-if toggle.is_toggled():
-    print("Toggle is ON")
-else:
-    print("Toggle is OFF")
-'''
-        elif self.current_widget_type == "slider":
-            # Визначаємо розміри підложки залежно від орієнтації
             orientation = self.orientation_combo.currentText().lower()
             track_length = self.slider_length_input.value()
 
             if orientation == 'vertical':
                 track_width = 6
                 track_height = track_length
-            else:  # horizontal
+            else:
                 track_width = track_length
                 track_height = 6
 
@@ -865,34 +685,365 @@ else:
                 'track_fill_color': '#9A9FB4'
             }
 
-            # Застосовуємо поточні стилі з пресету
             if self.current_config:
                 button_config = config['slider_button_config']
-
                 if 'button_normal' in self.current_config:
                     button_config['button_normal'] = self.current_config['button_normal']
                     button_config['button_hover'] = self.current_config['button_normal']
                     button_config['button_pressed'] = self.current_config['button_normal']
-
                 if 'border_normal' in self.current_config:
                     button_config['border_normal'] = self.current_config['border_normal']
                     button_config['border_hover'] = self.current_config['border_normal']
                     button_config['border_pressed'] = self.current_config['border_normal']
-
                 if 'bottom_normal' in self.current_config:
                     button_config['bottom_normal'] = self.current_config['bottom_normal']
                     button_config['bottom_hover'] = self.current_config['bottom_normal']
                     button_config['bottom_pressed'] = self.current_config['bottom_normal']
-
                 if 'button_normal' in self.current_config:
                     config['track_fill_color'] = self.current_config['button_normal']
+                if 'border_color' in self.current_config:
+                    button_config['border_color'] = self.current_config['border_color']
+                config['track_border_color'] = '#F2F2F2'
 
+            slider = MinecraftSlider(config)
+            slider.set_value(0.5)
+            slider.valueChanged.connect(lambda value: print(f"Slider value: {value:.2f}"))
+
+            def on_slider_change(value):
+                percentage = int(value * 100)
+                length_info = f"length {track_length}px"
+                print(f"Slider {orientation} ({length_info}): {percentage}%")
+
+            slider.valueChanged.connect(on_slider_change)
+
+            item_count = self.scroll_layout.count()
+            row = item_count // 4
+            col = item_count % 4
+            self.scroll_layout.addWidget(slider, row, col)
+            self.generated_sliders.append(slider)
+
+            print(f"Generated {orientation} slider (length: {track_length}px) with {self.preset_combo.currentText()} preset")
+
+    def clear_generated_buttons(self):
+        """Очищення згенерованих віджетів"""
+        for i in reversed(range(self.scroll_layout.count())):
+            item = self.scroll_layout.itemAt(i)
+            if item:
+                widget = item.widget()
+                if widget:
+                    widget.deleteLater()
+
+        self.generated_buttons.clear()
+        self.generated_radios.clear()
+        self.generated_toggles.clear()
+        self.generated_sliders.clear()
+        self.generated_entries.clear()
+
+    def save_preset(self):
+        """Збереження пресету"""
+        QMessageBox.information(self, "Info", "Preset saved! (Demo)")
+
+    def export_code(self):
+        """Експорт коду"""
+        if self.current_widget_type == "button":
+            config = {
+                'button_width': self.width_input.value(),
+                'button_height': self.height_input.value(),
+                'scale': self.scale_input.value(),
+                'animation_enabled': self.animation_check.isChecked(),
+                'has_shadow': True
+            }
+            config.update(self.current_config)
+            button_pattern_name = self.button_pattern_combo.currentText()
             preset_name = self.preset_combo.currentText()
+
+            code = f'''# Generated Minecraft Button Code
+# Preset: {preset_name}
+# Pattern: {button_pattern_name}
+# Size: {self.width_input.value()}x{self.height_input.value()} proportional pixels
+
+from widgets.minecraft_button import MinecraftButton
+
+button_config = {config}
+
+# Створення кнопки (без тексту)
+button = MinecraftButton("", button_config)
+
+# Застосування патерну
+button.set_pattern("{button_pattern_name}")
+
+# Обробник натискання
+button.clicked.connect(lambda: print("Button clicked!"))
+
+# Програмне керування кнопкою
+button.setEnabled(True)   # Увімкнути/вимкнути кнопку
+button.show()             # Показати кнопку
+
+# Зміна патерну програмно
+available_patterns = ["None", "Configure", "Question", "Message", "Point 1", "Plus", "Arrow Up", "Arrow Down"]
+button.set_pattern("Configure")  # Змінити патерн
+'''
+
+        elif self.current_widget_type == "radio":
+            config = {
+                'text': "",
+                'scale': self.scale_input.value(),
+                'has_shadow': True
+            }
+            config.update(self.current_config)
+            preset_name = self.preset_combo.currentText()
+
+            code = f'''# Generated Minecraft Radio Buttons Code
+# Preset: {preset_name}
+
+from widgets.minecraft_radio_button import MinecraftRadioButton, MinecraftRadioGroup
+
+radio_config = {config}
+
+# Створення двох радіокнопок
+radio1 = MinecraftRadioButton("Option 1", radio_config)
+radio2 = MinecraftRadioButton("Option 2", radio_config)
+
+# Створення групи радіокнопок (тільки одна може бути вибрана)
+radio_group = MinecraftRadioGroup()
+radio_group.add_radio_button(radio1)
+radio_group.add_radio_button(radio2)
+
+# Встановлення початкового стану
+radio1.set_selected(True)
+radio2.set_selected(False)
+
+# Обробники подій
+radio1.clicked.connect(lambda: print("Radio 1 clicked!"))
+radio2.clicked.connect(lambda: print("Radio 2 clicked!"))
+radio1.stateChanged.connect(lambda selected: print(f"Radio 1 {{'selected' if selected else 'deselected'}}"))
+radio2.stateChanged.connect(lambda selected: print(f"Radio 2 {{'selected' if selected else 'deselected'}}"))
+
+# Програмне керування
+def select_option(option_number):
+    if option_number == 1:
+        radio1.set_selected(True)
+    elif option_number == 2:
+        radio2.set_selected(True)
+
+# Перевірка вибраної опції
+selected_radio = radio_group.get_selected()
+if selected_radio == radio1:
+    print("Option 1 is selected")
+elif selected_radio == radio2:
+    print("Option 2 is selected")
+
+# Очищення вибору
+radio_group.clear_selection()
+'''
+
+        elif self.current_widget_type == "entry":
+            config = {
+                'entry_width': 60,  # Компактна ширина
+                'entry_height': 10, # Компактна висота з відступом знизу
+                'scale': self.scale_input.value(),
+                'placeholder': "Enter text..."
+            }
+            config.update(self.current_config)
+            preset_name = self.preset_combo.currentText()
+            scale_value = self.scale_input.value()
+            calculated_font_size = scale_value * 4
+
+            code = f'''# Generated Minecraft Entry Code
+# Preset: {preset_name}
+# Size: 50x10 proportional pixels (with 2px bottom margin)
+# Scale: {scale_value} (Font size: {calculated_font_size} - auto-calculated)
+
+from widgets.minecraft_entry import MinecraftEntry
+
+entry_config = {config}
+
+# Створення текстового поля
+# Розмір шрифту автоматично обчислюється як: scale * 6
+# Scale {scale_value} → Font size {calculated_font_size}
+# Має відступ знизу 2 пропорційних пікселя
+entry = MinecraftEntry("Enter text...", entry_config)
+
+# Встановлення placeholder тексту
+entry.set_placeholder("Your placeholder here")
+
+# Обробники подій
+entry.textChanged.connect(lambda text: print(f"Text changed: {{text}}"))
+entry.returnPressed.connect(lambda: print(f"Enter pressed: {{entry.get_text()}}"))
+
+# Програмна робота з текстом
+entry.set_text("Some initial text")  # Встановити текст
+current_text = entry.get_text()      # Отримати поточний текст
+entry.clear()                        # Очистити текст
+
+# Режим тільки для читання (опціонально)
+entry.set_readonly(False)  # True для режиму читання
+
+# Розширені обробники подій
+def on_text_changed(text):
+    print(f"Entry text: {{text}}")
+    if len(text) > 50:
+        print("Warning: Text is getting long!")
+
+def on_enter_pressed():
+    text = entry.get_text()
+    if text.strip():  # Перевіряємо, чи не порожній текст
+        print(f"Submitted: {{text}}")
+        entry.clear()  # Очистити після відправки
+    else:
+        print("Cannot submit empty text!")
+
+entry.textChanged.connect(on_text_changed)
+entry.returnPressed.connect(on_enter_pressed)
+
+# Валідація тексту
+def validate_input():
+    text = entry.get_text()
+    if not text:
+        return False, "Text is required"
+    if len(text) < 3:
+        return False, "Text must be at least 3 characters"
+    return True, "Valid input"
+
+# Використання валідації
+is_valid, message = validate_input()
+print(f"Validation: {{message}}")
+
+# Примітка: При scale {scale_value} розмір шрифту автоматично встановлюється на {calculated_font_size}
+# Формула: font_size = scale * 6
+# Текстове поле має відступ знизу 2 пропорційних пікселя для кращого вигляду
+'''
+
+        elif self.current_widget_type == "toggle":
+            config = {
+                'scale': self.scale_input.value(),
+                'has_shadow': True
+            }
+            config.update(self.current_config)
+            pattern_name = self.pattern_combo.currentText()
+            preset_name = self.preset_combo.currentText()
+
+            code = f'''# Generated Minecraft Toggle Switch Code
+# Preset: {preset_name}
+# Pattern: {pattern_name}
+
+from widgets.minecraft_toggle_button import MinecraftToggleButton
+
+toggle_config = {config}
+
+# Створення перемикача
+toggle = MinecraftToggleButton(toggle_config)
+
+# Застосування патерну
+toggle.set_pattern("{pattern_name}")
+
+# Встановлення початкового стану (за замовчуванням вимкнено)
+toggle.set_toggled(False)
+
+# Обробники подій
+toggle.clicked.connect(lambda: print("Toggle clicked!"))
+toggle.stateChanged.connect(lambda toggled: print(f"Toggle {{'ON' if toggled else 'OFF'}}"))
+
+# Програмне керування
+def toggle_on():
+    toggle.set_toggled(True)
+    print("Toggle turned ON programmatically")
+
+def toggle_off():
+    toggle.set_toggled(False)
+    print("Toggle turned OFF programmatically")
+
+def toggle_switch():
+    current_state = toggle.is_toggled()
+    toggle.set_toggled(not current_state)
+    print(f"Toggle switched to {{'ON' if not current_state else 'OFF'}}")
+
+# Перевірка стану
+if toggle.is_toggled():
+    print("Toggle is currently ON")
+else:
+    print("Toggle is currently OFF")
+
+# Розширений обробник з логікою
+def on_toggle_changed(is_on):
+    if is_on:
+        print("Feature enabled!")
+        # Тут можна додати логіку для увімкненого стану
+    else:
+        print("Feature disabled!")
+        # Тут можна додати логіку для вимкненого стану
+
+toggle.stateChanged.connect(on_toggle_changed)
+
+# Зміна патерну програмно
+available_patterns = ["None", "Standard"]
+toggle.set_pattern("Standard")  # Застосувати інший патерн
+'''
+
+        elif self.current_widget_type == "slider":
+            orientation = self.orientation_combo.currentText().lower()
+            track_length = self.slider_length_input.value()
+            preset_name = self.preset_combo.currentText()
+
+            if orientation == 'vertical':
+                track_width = 6
+                track_height = track_length
+            else:
+                track_width = track_length
+                track_height = 6
+
+            config = {
+                'scale': self.scale_input.value(),
+                'orientation': orientation,
+                'track_width': track_width,
+                'track_height': track_height,
+                'has_shadow': True,
+                'slider_button_config': {
+                    'button_width': 8,
+                    'button_height': 6,
+                    'scale': self.scale_input.value(),
+                    'border_color': '#413F54',
+                    'animation_enabled': False,
+                    'button_normal': '#9A9FB4',
+                    'button_hover': '#9A9FB4',
+                    'button_pressed': '#9A9FB4',
+                    'border_normal': '#ADB0C4',
+                    'border_hover': '#ADB0C4',
+                    'border_pressed': '#ADB0C4',
+                    'bottom_normal': '#9A9FB4',
+                    'bottom_hover': '#9A9FB4',
+                    'bottom_pressed': '#9A9FB4',
+                    'text_color': 'white',
+                    'font_family': 'Minecraftia',
+                    'has_shadow': True
+                },
+                'track_border_color': '#F2F2F2',
+                'track_fill_color': '#9A9FB4'
+            }
+
+            if self.current_config:
+                button_config = config['slider_button_config']
+                if 'button_normal' in self.current_config:
+                    button_config['button_normal'] = self.current_config['button_normal']
+                    button_config['button_hover'] = self.current_config['button_normal']
+                    button_config['button_pressed'] = self.current_config['button_normal']
+                if 'border_normal' in self.current_config:
+                    button_config['border_normal'] = self.current_config['border_normal']
+                    button_config['border_hover'] = self.current_config['border_normal']
+                    button_config['border_pressed'] = self.current_config['border_normal']
+                if 'bottom_normal' in self.current_config:
+                    button_config['bottom_normal'] = self.current_config['bottom_normal']
+                    button_config['bottom_hover'] = self.current_config['bottom_normal']
+                    button_config['bottom_pressed'] = self.current_config['bottom_normal']
+                if 'button_normal' in self.current_config:
+                    config['track_fill_color'] = self.current_config['button_normal']
 
             code = f'''# Generated Minecraft Slider Code
 # Preset: {preset_name}
 # Orientation: {orientation}
 # Track Length: {track_length} proportional pixels
+
+from widgets.minecraft_slider import MinecraftSlider
 
 slider_config = {config}
 
@@ -911,16 +1062,62 @@ print(f"Current value: {{current_value:.2f}}")
 
 # Програмна зміна значення
 slider.set_value(0.75)  # Встановити на 75%
+slider.set_value(0.0)   # Мінімальне значення
+slider.set_value(1.0)   # Максимальне значення
 
 # Зміна орієнтації (якщо потрібно)
 slider.set_orientation("{orientation}")  # "vertical" або "horizontal"
 
-# Обробник події зміни значення з детальною інформацією
+# Розширений обробник подій з детальною інформацією
 def on_slider_changed(value):
-    print(f"Slider {{'{orientation}'}} (length: {track_length}px): {{value:.2f}} ({{value*100:.0f}}%)")
+    percentage = int(value * 100)
+    print(f"Slider {orientation} (length: {track_length}px): {{value:.2f}} ({{percentage}}%)")
+    
+    # Додаткова логіка залежно від значення
+    if value < 0.25:
+        print("Low range")
+    elif value < 0.75:
+        print("Medium range")
+    else:
+        print("High range")
 
 slider.valueChanged.connect(on_slider_changed)
+
+# Створення функцій для конкретних значень
+def set_minimum():
+    slider.set_value(0.0)
+
+def set_maximum():
+    slider.set_value(1.0)
+
+def set_middle():
+    slider.set_value(0.5)
+
+def increment_by_10_percent():
+    current = slider.get_value()
+    new_value = min(1.0, current + 0.1)
+    slider.set_value(new_value)
+
+def decrement_by_10_percent():
+    current = slider.get_value()
+    new_value = max(0.0, current - 0.1)
+    slider.set_value(new_value)
+
+# Встановлення значення з валідацією
+def set_value_safe(value):
+    if 0.0 <= value <= 1.0:
+        slider.set_value(value)
+        return True
+    else:
+        print(f"Invalid value: {{value}}. Must be between 0.0 and 1.0")
+        return False
+
+# Приклад використання
+set_value_safe(0.8)  # Валідне значення
+set_value_safe(1.5)  # Неваліне значення
 '''
+        else:
+            code = f"# Export for {self.current_widget_type} not implemented yet"
 
         # Показуємо код у діалозі
         dialog = QWidget()
@@ -936,5 +1133,4 @@ slider.valueChanged.connect(on_slider_changed)
         dialog.setLayout(layout)
         dialog.show()
 
-        # Зберігаємо посилання, щоб діалог не зник
         self.code_dialog = dialog
