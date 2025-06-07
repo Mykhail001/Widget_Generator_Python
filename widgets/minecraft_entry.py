@@ -1,5 +1,5 @@
 """
-Minecraft-стильне текстове поле (Entry)
+Minecraft-style text entry field
 """
 from PyQt6.QtWidgets import QFrame, QLineEdit
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -7,8 +7,8 @@ from PyQt6.QtGui import QFont
 
 class MinecraftEntry(QFrame):
     """
-    Текстове поле в стилі Minecraft
-    Розмір: 50x10 пропорційних пікселів, текст займає повну висоту
+    Minecraft-style text entry field
+    Size: configurable width x 10 proportional pixels, text takes full height
     """
     textChanged = pyqtSignal(str)
     returnPressed = pyqtSignal()
@@ -16,21 +16,20 @@ class MinecraftEntry(QFrame):
     def __init__(self, placeholder="", style_config=None, parent=None):
         super().__init__(parent)
 
-        # Дефолтна конфігурація для Entry
+        # Default configuration for Entry
         self.default_config = {
-            'entry_width': 60,   # Ширина в пропорційних пікселях
-            'entry_height': 10,  # Висота в пропорційних пікселях
+            'entry_width': 60,          # Width in proportional pixels
+            'entry_height': 10,         # Height in proportional pixels
             'scale': 8,
-            'border_color': '#F2F2F2',      # Світлий бордер
-            'top_space_color': '#696D88',   # Колір верхнього пропуску
-            'background_color': '#9A9FB4',  # Основний фон
+            'border_color': '#F2F2F2',      # Light border
+            'top_space_color': '#696D88',   # Top space color
+            'background_color': '#9A9FB4',  # Main background
             'text_color': 'white',
             'font_family': 'Minecraft Standard',
-            # font_size тепер обчислюється автоматично на основі scale
             'placeholder': placeholder
         }
 
-        # Застосовуємо користувацьку конфігурацію
+        # Apply user configuration
         self.config = self.default_config.copy()
         if style_config:
             self.config.update(style_config)
@@ -39,21 +38,21 @@ class MinecraftEntry(QFrame):
         self.setup_entry()
 
     def setup_entry(self):
-        """Налаштування текстового поля"""
+        """Setup text entry field"""
         try:
             self.scale = self.config['scale']
 
-            # Розрахунок розмірів з бордерами
+            # Calculate dimensions with borders
             entry_width = self.config['entry_width']
             entry_height = self.config['entry_height']
 
-            # Загальні розміри: бордери (1+1) + основна частина
+            # Total dimensions: borders (1+1) + main area
             self.base_width = (entry_width + 2) * self.scale
             self.base_height = (entry_height + 2) * self.scale
 
             self.setFixedSize(self.base_width, self.base_height)
 
-            # Створюємо елементи
+            # Create elements
             self.create_entry_border()
             self.create_entry_background()
             self.create_text_input()
@@ -61,86 +60,85 @@ class MinecraftEntry(QFrame):
             print(f"Setup error: {e}")
 
     def create_entry_border(self):
-        """Створення бордера Entry"""
+        """Create Entry border"""
         border_color = self.config['border_color']  # #F2F2F2
 
-        # Верхній бордер
+        # Top border
         self.top_border = QFrame(self)
         self.top_border.setGeometry(0, 0, self.base_width, self.scale)
         self.top_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Лівий бордер
+        # Left border
         self.left_border = QFrame(self)
         self.left_border.setGeometry(0, self.scale, self.scale, self.config['entry_height'] * self.scale)
         self.left_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Правий бордер
+        # Right border
         self.right_border = QFrame(self)
         self.right_border.setGeometry((self.config['entry_width'] + 1) * self.scale, self.scale,
                                      self.scale, self.config['entry_height'] * self.scale)
         self.right_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Нижній бордер
+        # Bottom border
         self.bottom_border = QFrame(self)
         self.bottom_border.setGeometry(0, (self.config['entry_height'] + 1) * self.scale,
                                      self.base_width, self.scale)
         self.bottom_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
     def create_entry_background(self):
-        """Створення фону Entry"""
+        """Create Entry background"""
         entry_width = self.config['entry_width']
         entry_height = self.config['entry_height']
 
-        # Верхній пропуск (2 пропорційних пікселі після бордеру)
+        # Top space (2 proportional pixels after border)
         self.top_space = QFrame(self)
         self.top_space.setGeometry(self.scale, self.scale,
                                  entry_width * self.scale, 2 * self.scale)
         self.top_space.setStyleSheet(f"background-color: {self.config['top_space_color']}; border-radius: 0px;")
 
-        # Основна частина (решта після верхнього пропуску)
-        main_height = entry_height - 2  # Віднімаємо 2 пікселі верхнього пропуску
+        # Main area (remainder after top space)
+        main_height = entry_height - 2  # Subtract 2 pixels of top space
         self.main_background = QFrame(self)
         self.main_background.setGeometry(self.scale, (1 + 2) * self.scale,
                                        entry_width * self.scale, main_height * self.scale)
         self.main_background.setStyleSheet(f"background-color: {self.config['background_color']}; border-radius: 0px;")
 
     def create_text_input(self):
-        """Створення текстового поля для введення"""
+        """Create text input field"""
         entry_width = self.config['entry_width']
         entry_height = self.config['entry_height']
 
-        # Текстове поле розташоване на 2 проп пкс вище бордеру (тобто в основній частині)
-        # Переміщуємо на 2 пропорційних пікселя вгору
-        text_y = (1 + 2) * self.scale - 2 * self.scale  # Після бордеру + після верхнього пропуску - 2 пікселя вгору
+        # Position text field 2 proportional pixels above border (in main area)
+        text_y = (1 + 2) * self.scale - 2 * self.scale  # After border + after top space - 2 pixels up
 
-        # Висота основної частини БЕЗ нижнього відступу + компенсація за переміщення вгору
-        text_height = (entry_height - 2) * self.scale + 2 * self.scale  # +2 пікселя для компенсації переміщення
+        # Height of main area WITHOUT bottom margin + compensation for upward movement
+        text_height = (entry_height - 2) * self.scale + 2 * self.scale  # +2 pixels to compensate movement
 
         self.text_input = QLineEdit(self)
 
-        # Залишаємо повну ширину, але додаємо внутрішній відступ через CSS
+        # Keep full width but add internal padding through CSS
         self.text_input.setGeometry(
-            self.scale,  # тільки бордер
+            self.scale,  # Only border offset
             text_y,
-            entry_width * self.scale,  # повна ширина
+            entry_width * self.scale,  # Full width
             text_height
         )
 
-        # Розрахунок розміру шрифту на основі scale
-        # Формула: font_size = scale * 4 (для більшого, читабельного тексту)
+        # Calculate font size based on scale
+        # Formula: font_size = scale * 4 (for larger, readable text)
         calculated_font_size = self.scale * 4
 
-        # Якщо в конфігурації явно вказано font_size, використовуємо його
+        # If font_size is explicitly specified in config, use it
         if 'font_size' in self.config:
             font_size = self.config['font_size']
         else:
             font_size = calculated_font_size
 
-        # Налаштування шрифту з масштабованим розміром
+        # Setup font with scaled size
         font = QFont(self.config['font_family'], font_size)
         self.text_input.setFont(font)
 
-        # Стилі для текстового поля
+        # Styles for text field
         self.text_input.setStyleSheet(f"""
         QLineEdit {{
             background-color: transparent;
@@ -163,63 +161,63 @@ class MinecraftEntry(QFrame):
         if self.config['placeholder']:
             self.text_input.setPlaceholderText(self.config['placeholder'])
 
-        # Підключаємо сигнали
+        # Connect signals
         self.text_input.textChanged.connect(self.textChanged.emit)
         self.text_input.returnPressed.connect(self.returnPressed.emit)
 
-        # Безпечні обробники фокусу через сигнали
+        # Safe focus handlers through signals
         self.text_input.focusInEvent = lambda event: self.handle_focus_in(event)
         self.text_input.focusOutEvent = lambda event: self.handle_focus_out(event)
 
     def handle_focus_in(self, event):
-        """Безпечна обробка отримання фокусу"""
+        """Safe focus in handler"""
         try:
             self.focused = True
             self.update_entry_styles()
-            # Викликаємо оригінальний обробник
+            # Call original handler
             QLineEdit.focusInEvent(self.text_input, event)
         except Exception as e:
             print(f"Focus in error: {e}")
 
     def handle_focus_out(self, event):
-        """Безпечна обробка втрати фокусу"""
+        """Safe focus out handler"""
         try:
             self.focused = False
             self.update_entry_styles()
-            # Викликаємо оригінальний обробник
+            # Call original handler
             QLineEdit.focusOutEvent(self.text_input, event)
         except Exception as e:
             print(f"Focus out error: {e}")
 
     def update_entry_styles(self):
-        """Оновлення стилів при зміні фокусу"""
+        """Update styles on focus change"""
         try:
             if self.focused:
-                # При фокусі можна змінити колір бордеру або фону
-                # Наразі залишаємо як є, але можна додати ефекти
+                # On focus, can change border or background color
+                # Currently keeping as is, but effects can be added
                 pass
             else:
-                # Без фокусу - стандартні кольори
+                # Without focus - standard colors
                 pass
         except Exception as e:
             print(f"Style update error: {e}")
 
     def get_text(self):
-        """Отримання тексту"""
+        """Get text"""
         return self.text_input.text()
 
     def set_text(self, text):
-        """Встановлення тексту"""
+        """Set text"""
         self.text_input.setText(text)
 
     def clear(self):
-        """Очищення тексту"""
+        """Clear text"""
         self.text_input.clear()
 
     def set_placeholder(self, placeholder):
-        """Встановлення placeholder тексту"""
+        """Set placeholder text"""
         self.text_input.setPlaceholderText(placeholder)
 
     def set_readonly(self, readonly):
-        """Встановлення режиму тільки для читання"""
+        """Set read-only mode"""
         self.text_input.setReadOnly(readonly)

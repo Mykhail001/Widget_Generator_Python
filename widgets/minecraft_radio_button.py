@@ -1,5 +1,5 @@
 """
-Minecraft-стильні радіокнопки
+Minecraft-style radio buttons
 """
 from PyQt6.QtWidgets import QFrame, QLabel
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -7,14 +7,14 @@ from PyQt6.QtGui import QFont
 
 class MinecraftRadioButton(QFrame):
     """
-    Радіокнопка в стилі Minecraft
+    Minecraft-style radio button
     """
     clicked = pyqtSignal()
-    stateChanged = pyqtSignal(bool)  # True коли вибрано
+    stateChanged = pyqtSignal(bool)  # True when selected
 
     def __init__(self, text="", style_config=None, parent=None):
         super().__init__(parent)
-        # Дефолтна конфігурація для радіокнопки
+        # Default configuration for radio button
         self.default_config = {
             'text': text,
             'scale': 8,
@@ -26,15 +26,15 @@ class MinecraftRadioButton(QFrame):
             'border_hover': '#DAFFFF',
             'border_selected': '#DAFFFF',
             'indicator_color': '#DAFFFF',
-            'indicator_line_color': '#708CBA',  # Колір лінійки (51 74 97)
-            'bottom_space_normal': '#696D88',   # Колір нижнього пробілу (неактивна)
-            'bottom_space_hover': '#708CBA',    # Колір нижнього пробілу (навести)
-            'bottom_space_selected': '#708CBA', # Колір нижнього пробілу (вибрано)
+            'indicator_line_color': '#708CBA',  # Line color (51 74 97)
+            'bottom_space_normal': '#696D88',   # Bottom space color (inactive)
+            'bottom_space_hover': '#708CBA',    # Bottom space color (hover)
+            'bottom_space_selected': '#708CBA', # Bottom space color (selected)
             'text_color': 'white',
             'font_family': 'Minecraftia'
         }
 
-        # Застосовуємо користувацьку конфігурацію
+        # Apply user configuration
         self.config = self.default_config.copy()
         if style_config:
             self.config.update(style_config)
@@ -43,25 +43,24 @@ class MinecraftRadioButton(QFrame):
         self.setup_radio_button()
 
     def setup_radio_button(self):
-        """Налаштування радіокнопки"""
+        """Setup radio button"""
         self.scale = self.config['scale']
 
-        # Розміри: зменшена основна частина (10x9) + бордери + нижній пробіл
-        # Видаляємо відносно квадрату: 1 згори, 1 зліва, 1 зправа, 2 знизу
-        main_width = 10  # було 12, мінус 1 зліва та 1 зправа
-        main_height = 9  # було 12, мінус 1 згори та 2 знизу
-        self.radio_width = (main_width + 2) * self.scale  # +2 для бордерів
-        self.radio_height = (main_height + 2 + 2) * self.scale  # +2 для бордерів +2 для нижнього пробілу
+        # Dimensions: reduced main area (10x9) + borders + bottom space
+        main_width = 10  # was 12, minus 1 left and 1 right
+        main_height = 9  # was 12, minus 1 top and 2 bottom
+        self.radio_width = (main_width + 2) * self.scale  # +2 for borders
+        self.radio_height = (main_height + 2 + 2) * self.scale  # +2 for borders +2 for bottom space
 
-        # Якщо є текст, додаємо місце для нього
+        # If there's text, add space for it
         text_width = 0
         if self.config['text']:
-            text_width = len(self.config['text']) * 10 + 10  # Фіксований розрахунок
+            text_width = len(self.config['text']) * 10 + 10  # Fixed calculation
 
         total_width = self.radio_width + text_width
         self.setFixedSize(total_width, self.radio_height)
 
-        # Створюємо елементи
+        # Create elements
         self.create_radio_borders()
         self.create_radio_main()
         self.create_radio_indicator()
@@ -70,175 +69,175 @@ class MinecraftRadioButton(QFrame):
         self.update_radio_styles()
 
     def create_radio_borders(self):
-        """Створення бордерів радіокнопки"""
+        """Create radio button borders"""
         border_color = self.config['border_color']
 
-        # Верхній бордер
+        # Top border
         self.top_border = QFrame(self)
         self.top_border.setGeometry(0, 0, self.radio_width, self.scale)
         self.top_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Лівий бордер (висота для основної частини 9 + нижній простір 2)
+        # Left border (height for main area 9 + bottom space 2)
         self.left_border = QFrame(self)
         self.left_border.setGeometry(0, self.scale, self.scale, 11 * self.scale)
         self.left_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Правий бордер (позиція для ширини 10+1)
+        # Right border (position for width 10+1)
         self.right_border = QFrame(self)
         self.right_border.setGeometry(11 * self.scale, self.scale, self.scale, 11 * self.scale)
         self.right_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Нижній бордер (позиція для висоти 9+2+1)
+        # Bottom border (position for height 9+2+1)
         self.bottom_border = QFrame(self)
         self.bottom_border.setGeometry(0, 12 * self.scale, self.radio_width, self.scale)
         self.bottom_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
     def create_radio_main(self):
-        """Створення основної частини радіокнопки"""
+        """Create main radio button area"""
         self.main_area = QFrame(self)
-        # Нова основна частина: 10x9 пікселів
+        # New main area: 10x9 pixels
         self.main_area.setGeometry(self.scale, self.scale, 10 * self.scale, 9 * self.scale)
 
     def create_radio_indicator(self):
-        """Створення центрального індикатора для вибраного стану"""
-        # Центральний квадрат 4x4 з новими відступами
-        # Зліва: 3 пікселі (було 4, мінус 1)
-        # Згори: 3 пікселі (було 4, мінус 1)
+        """Create center indicator for selected state"""
+        # Center square 4x4 with new margins
+        # Left: 3 pixels (was 4, minus 1)
+        # Top: 3 pixels (was 4, minus 1)
         indicator_size = 4 * self.scale
-        indicator_x = self.scale + 3 * self.scale  # відступ 3 пікселі від лівого краю основної частини
-        indicator_y = self.scale + 3 * self.scale  # відступ 3 пікселі від верхнього краю
+        indicator_x = self.scale + 3 * self.scale  # 3 pixel offset from left edge of main area
+        indicator_y = self.scale + 3 * self.scale  # 3 pixel offset from top edge
 
         self.indicator = QFrame(self)
         self.indicator.setGeometry(indicator_x, indicator_y, indicator_size, indicator_size)
-        self.indicator.hide()  # Спочатку прихований
+        self.indicator.hide()  # Initially hidden
 
-        # Горизонтальна лінійка всередині індикатора (4x1 піксель) - в першому рядочку
-        line_y = indicator_y  # В першому рядочку квадрату
+        # Horizontal line inside indicator (4x1 pixel) - in first row
+        line_y = indicator_y  # In first row of square
         self.indicator_line = QFrame(self)
         self.indicator_line.setGeometry(indicator_x, line_y, indicator_size, self.scale)
-        self.indicator_line.hide()  # Спочатку прихований
+        self.indicator_line.hide()  # Initially hidden
 
     def create_radio_bottom_space(self):
-        """Створення нижнього пробілу радіокнопки"""
-        # Нижній пробіл займає всю ширину нової основної частини (10 пікселів)
-        space_width = 10 * self.scale  # Вся ширина всередині бордерів
-        space_x = self.scale  # Починається одразу після лівого бордера
-        space_y = 10 * self.scale  # Під основною частиною (1 + 9)
+        """Create radio button bottom space"""
+        # Bottom space takes full width of new main area (10 pixels)
+        space_width = 10 * self.scale  # Full width inside borders
+        space_x = self.scale  # Starts right after left border
+        space_y = 10 * self.scale  # Under main area (1 + 9)
 
         self.radio_bottom_space = QFrame(self)
         self.radio_bottom_space.setGeometry(space_x, space_y, space_width, 2 * self.scale)
 
     def create_radio_text(self):
-        """Створення тексту радіокнопки"""
+        """Create radio button text"""
         if self.config['text']:
             self.text_label = QLabel(self.config['text'], self)
-            font = QFont(self.config['font_family'], 16)  # Фіксований розмір
+            font = QFont(self.config['font_family'], 16)  # Fixed size
             self.text_label.setFont(font)
             self.text_label.setStyleSheet(f"color: {self.config['text_color']}; background: transparent;")
 
-            # Позиціонуємо текст праворуч від радіокнопки
+            # Position text to the right of radio button
             text_x = self.radio_width + 5
-            text_y = (self.radio_height - 16) // 2  # Фіксований розмір шрифту
+            text_y = (self.radio_height - 16) // 2  # Fixed font size
             self.text_label.move(text_x, text_y)
 
     def mousePressEvent(self, event):
-        """Обробка натискання"""
+        """Handle press"""
         if event.button() == Qt.MouseButton.LeftButton:
-            # Перевіряємо, чи клік був по радіокнопці (не по тексту)
+            # Check if click was on radio button (not on text)
             if event.pos().x() <= self.radio_width:
                 self.toggle_selection()
         super().mousePressEvent(event)
 
     def enterEvent(self, event):
-        """Обробка наведення миші"""
+        """Handle mouse enter"""
         self.hover_state = True
         self.update_radio_styles()
         super().enterEvent(event)
 
     def leaveEvent(self, event):
-        """Обробка виходу миші"""
+        """Handle mouse leave"""
         self.hover_state = False
         self.update_radio_styles()
         super().leaveEvent(event)
 
     def toggle_selection(self):
-        """Перемикання стану вибору"""
+        """Toggle selection state"""
         self.selected = not self.selected
         self.update_radio_styles()
         self.clicked.emit()
         self.stateChanged.emit(self.selected)
 
     def set_selected(self, selected):
-        """Встановлення стану вибору програмно"""
+        """Set selection state programmatically"""
         if self.selected != selected:
             self.selected = selected
             self.update_radio_styles()
             self.stateChanged.emit(self.selected)
 
     def is_selected(self):
-        """Повертає стан вибору"""
+        """Return selection state"""
         return self.selected
 
     def update_radio_styles(self):
-        """Оновлення стилів радіокнопки"""
+        """Update radio button styles"""
         if self.selected:
-            # Вибраний стан (як натиснута кнопка)
+            # Selected state (like pressed button)
             button_bg = self.config['button_selected']
             border_color = self.config['border_selected']
             bottom_space_color = self.config['bottom_space_selected']
 
-            # Зміщуємо основну частину вниз на 1 піксель
+            # Move main area down by 1 pixel
             self.main_area.setGeometry(self.scale, 2 * self.scale, 10 * self.scale, 9 * self.scale)
 
-            # Нижній пробіл зменшується до 1 пікселя (як у натиснутої кнопки)
+            # Bottom space reduces to 1 pixel (like pressed button)
             self.radio_bottom_space.setGeometry(self.scale, 11 * self.scale, 10 * self.scale, 1 * self.scale)
 
-            # Показуємо індикатор
+            # Show indicator
             self.indicator.show()
             self.indicator_line.show()
 
-            # Змінюємо верхній бордер
+            # Change top border
             self.top_border.setStyleSheet("background-color: #CBCCD4; border-radius: 0px;")
 
         elif self.hover_state:
-            # Стан наведення
+            # Hover state
             button_bg = self.config['button_hover']
             border_color = self.config['border_hover']
             bottom_space_color = self.config['bottom_space_hover']
 
-            # Нормальна позиція
+            # Normal position
             self.main_area.setGeometry(self.scale, self.scale, 10 * self.scale, 9 * self.scale)
 
-            # Нормальний розмір нижнього пробілу (2 пікселі)
+            # Normal bottom space size (2 pixels)
             self.radio_bottom_space.setGeometry(self.scale, 10 * self.scale, 10 * self.scale, 2 * self.scale)
 
-            # Приховуємо індикатор
+            # Hide indicator
             self.indicator.hide()
             self.indicator_line.hide()
 
-            # Відновлюємо верхній бордер
+            # Restore top border
             self.top_border.setStyleSheet(f"background-color: {self.config['border_color']}; border-radius: 0px;")
 
         else:
-            # Нормальний стан
+            # Normal state
             button_bg = self.config['button_normal']
             border_color = self.config['border_normal']
             bottom_space_color = self.config['bottom_space_normal']
 
-            # Нормальна позиція
+            # Normal position
             self.main_area.setGeometry(self.scale, self.scale, 10 * self.scale, 9 * self.scale)
 
-            # Нормальний розмір нижнього пробілу (2 пікселі)
+            # Normal bottom space size (2 pixels)
             self.radio_bottom_space.setGeometry(self.scale, 10 * self.scale, 10 * self.scale, 2 * self.scale)
 
-            # Приховуємо індикатор
+            # Hide indicator
             self.indicator.hide()
             self.indicator_line.hide()
 
-            # Відновлюємо верхній бордер
+            # Restore top border
             self.top_border.setStyleSheet(f"background-color: {self.config['border_color']}; border-radius: 0px;")
 
-        # Застосовуємо стилі
+        # Apply styles
         main_style = f"""QFrame {{ 
             background-color: {button_bg}; 
             border: {self.scale}px solid {border_color};
@@ -271,35 +270,35 @@ class MinecraftRadioButton(QFrame):
 
 class MinecraftRadioGroup:
     """
-    Група радіокнопок (тільки одна може бути вибрана одночасно)
+    Radio button group (only one can be selected at a time)
     """
     def __init__(self):
         self.radio_buttons = []
         self.selected_button = None
 
     def add_radio_button(self, radio_button):
-        """Додати радіокнопку до групи"""
+        """Add radio button to group"""
         if radio_button not in self.radio_buttons:
             self.radio_buttons.append(radio_button)
             radio_button.clicked.connect(lambda: self.on_radio_clicked(radio_button))
 
     def on_radio_clicked(self, clicked_button):
-        """Обробка кліку по радіокнопці"""
-        # Знімаємо вибір з усіх кнопок
+        """Handle radio button click"""
+        # Deselect all buttons
         for button in self.radio_buttons:
             if button != clicked_button:
                 button.set_selected(False)
 
-        # Встановлюємо вибір на натиснуту кнопку
+        # Select clicked button
         self.selected_button = clicked_button
         clicked_button.set_selected(True)
 
     def get_selected(self):
-        """Повертає вибрану радіокнопку"""
+        """Return selected radio button"""
         return self.selected_button
 
     def clear_selection(self):
-        """Очищає вибір"""
+        """Clear selection"""
         for button in self.radio_buttons:
             button.set_selected(False)
         self.selected_button = None

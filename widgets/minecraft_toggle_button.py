@@ -1,5 +1,5 @@
 """
-Minecraft-стильний перемикач (toggle switch)
+Minecraft-style toggle switch
 """
 from PyQt6.QtWidgets import QFrame
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -9,20 +9,20 @@ from .minecraft_button import MinecraftButton
 
 class MinecraftToggleButton(QFrame):
     """
-    Перемикач (toggle switch) в стилі Minecraft
+    Minecraft-style toggle switch
     """
     clicked = pyqtSignal()
-    stateChanged = pyqtSignal(bool)  # True коли увімкнено
+    stateChanged = pyqtSignal(bool)  # True when enabled
 
     def __init__(self, style_config=None, parent=None):
         super().__init__(parent)
 
-        # Дефолтна конфігурація для перемикача (без тексту)
+        # Default configuration for toggle switch (without text)
         self.default_config = {
             'scale': 8,
             'border_color': '#413F54',  # (65, 63, 84)
-            'left_area_color': '#9CD3FF',  # Ліва частина
-            'right_area_color': '#696D88',  # Права частина
+            'left_area_color': '#9CD3FF',  # Left area
+            'right_area_color': '#696D88',  # Right area
             'button_normal': '#9A9FB4',
             'button_pressed': '#9CD3FF',
             'border_normal': '#ADB0C4',
@@ -31,99 +31,99 @@ class MinecraftToggleButton(QFrame):
             'bottom_pressed': '#708CBA'
         }
 
-        # Застосовуємо користувацьку конфігурацію
+        # Apply user configuration
         self.config = self.default_config.copy()
         if style_config:
             self.config.update(style_config)
 
-        self.toggled = False  # Стан перемикача
-        self.hover_state = False  # Стан наведення миші
-        self.hover_active = True  # Чи активний hover ефект (скидається після натискання)
-        self.pattern_name = 'Standard'  # Стандартний патерн за замовчуванням
-        self.pattern_pixels = []  # Список QFrame елементів для патерну
+        self.toggled = False  # Toggle state
+        self.hover_state = False  # Mouse hover state
+        self.hover_active = True  # Whether hover effect is active (resets after click)
+        self.pattern_name = 'Standard'  # Standard pattern by default
+        self.pattern_pixels = []  # List of QFrame elements for pattern
         self.setup_toggle()
 
     def setup_toggle(self):
-        """Налаштування перемикача"""
+        """Setup toggle switch"""
         self.scale = self.config['scale']
 
-        # Розміри: 20x9 + бордери (1+1)x(1+1) = 22x13 (зменшили ширину на 2, висоту на 2)
-        # Додаємо додатковий простір зверху для рухомої кнопки
-        self.toggle_width = 22 * self.scale  # було 24
-        self.toggle_height = 13 * self.scale  # було 15
+        # Dimensions: 20x9 + borders (1+1)x(1+1) = 22x13
+        # Add extra space on top for moving button
+        self.toggle_width = 22 * self.scale
+        self.toggle_height = 13 * self.scale
 
         self.setFixedSize(self.toggle_width, self.toggle_height)
 
-        # Створюємо елементи
+        # Create elements
         self.create_toggle_borders()
         self.create_toggle_areas()
-        self.create_pattern()  # Створюємо патерн перед рухомою кнопкою
+        self.create_pattern()  # Create pattern before moving button
         self.create_moving_button()
         self.update_toggle_styles()
 
     def create_toggle_borders(self):
-        """Створення бордерів перемикача"""
+        """Create toggle switch borders"""
         border_color = self.config['border_color']
 
-        # Зсунуто вниз на 2 пікселі для місця під рухому кнопку
-        # Верхній бордер
+        # Moved down by 2 pixels for space under moving button
+        # Top border
         self.top_border = QFrame(self)
         self.top_border.setGeometry(0, 2 * self.scale, self.toggle_width, self.scale)
         self.top_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Лівий бордер (висота 9 пікселів - зменшено на 2)
+        # Left border (height 9 pixels)
         self.left_border = QFrame(self)
         self.left_border.setGeometry(0, 3 * self.scale, self.scale, 9 * self.scale)
         self.left_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Правий бордер (позиція 21 - зменшено на 2)
+        # Right border (position 21)
         self.right_border = QFrame(self)
         self.right_border.setGeometry(21 * self.scale, 3 * self.scale, self.scale, 9 * self.scale)
         self.right_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Нижній бордер (позиція 12 - зменшено на 2)
+        # Bottom border (position 12)
         self.bottom_border = QFrame(self)
         self.bottom_border.setGeometry(0, 12 * self.scale, self.toggle_width, self.scale)
         self.bottom_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
     def create_toggle_areas(self):
-        """Створення лівої та правої областей"""
-        # Зсунуто вниз на 2 пікселі для місця під рухому кнопку
-        # Ліва область (11x9) - висота зменшена на 2
+        """Create left and right areas"""
+        # Moved down by 2 pixels for space under moving button
+        # Left area (11x9)
         self.left_area = QFrame(self)
         self.left_area.setGeometry(self.scale, 3 * self.scale, 11 * self.scale, 9 * self.scale)
         self.left_area.setStyleSheet(f"background-color: {self.config['left_area_color']}; border-radius: 0px;")
 
-        # Права область (9x9) - ширина та висота зменшені на 2
+        # Right area (9x9)
         self.right_area = QFrame(self)
         self.right_area.setGeometry(12 * self.scale, 3 * self.scale, 9 * self.scale, 9 * self.scale)
         self.right_area.setStyleSheet(f"background-color: {self.config['right_area_color']}; border-radius: 0px;")
 
     def create_pattern(self):
-        """Створення патерну на підложці"""
-        self.clear_pattern()  # Очищаємо попередній патерн
+        """Create pattern on background"""
+        self.clear_pattern()  # Clear previous pattern
 
         patterns = TogglePatternManager.get_patterns()
         colors = TogglePatternManager.get_pattern_colors()
 
         if self.pattern_name not in patterns or patterns[self.pattern_name] is None:
-            return  # Немає патерну
+            return  # No pattern
 
         pattern_data = patterns[self.pattern_name]
 
-        # Створюємо пікселі патерну (18x7 всередині областей - зменшено на 2x2)
-        max_rows = min(7, len(pattern_data))  # Максимум 7 рядків
+        # Create pattern pixels (18x7 inside areas)
+        max_rows = min(7, len(pattern_data))  # Maximum 7 rows
         for row_idx in range(max_rows):
             row = pattern_data[row_idx]
-            max_cols = min(18, len(row))  # Максимум 18 колонок
+            max_cols = min(18, len(row))  # Maximum 18 columns
             for col_idx in range(max_cols):
                 symbol = row[col_idx]
-                if symbol != '0':  # Не прозорий піксель
+                if symbol != '0':  # Not transparent pixel
                     color = colors.get(symbol)
                     if color:
-                        # Позиція пікселя (зсунуто вниз на 3 для бордерів)
-                        pixel_x = (1 + col_idx) * self.scale  # +1 для лівого бордера
-                        pixel_y = (3 + row_idx) * self.scale  # +3 для верхнього бордера
+                        # Pixel position (moved down by 3 for borders)
+                        pixel_x = (1 + col_idx) * self.scale  # +1 for left border
+                        pixel_y = (3 + row_idx) * self.scale  # +3 for top border
 
                         pixel = QFrame(self)
                         pixel.setGeometry(pixel_x, pixel_y, self.scale, self.scale)
@@ -133,76 +133,76 @@ class MinecraftToggleButton(QFrame):
                         self.pattern_pixels.append(pixel)
 
     def clear_pattern(self):
-        """Очищення попереднього патерну"""
+        """Clear previous pattern"""
         for pixel in self.pattern_pixels:
             pixel.deleteLater()
         self.pattern_pixels.clear()
 
     def set_pattern(self, pattern_name):
-        """Встановлення нового патерну"""
+        """Set new pattern"""
         self.pattern_name = pattern_name
         self.create_pattern()
-        # Переконуємося, що рухома кнопка залишається зверху
+        # Ensure moving button stays on top
         if hasattr(self, 'moving_button'):
             self.moving_button.raise_()
 
     def create_moving_button(self):
-        """Створення рухомої кнопки як справжнього MinecraftButton"""
-        # Конфігурація для рухомої кнопки (10x8 - зменшили висоту на 2)
+        """Create moving button as real MinecraftButton"""
+        # Configuration for moving button (10x8)
         button_config = {
-            'button_width': 10,  # Ширина головної частини
-            'button_height': 8,  # Висота головної частини (було 10, тепер 8)
+            'button_width': 10,  # Main area width
+            'button_height': 8,  # Main area height
             'scale': self.scale,
-            'border_color': '#413F54',  # Темний бордер
-            'button_normal': '#9A9FB4',  # Світліший колір для видимості
-            'button_hover': '#9A9FB4',   # Без hover ефекту
-            'button_pressed': '#9A9FB4', # Без pressed ефекту
-            'border_normal': '#ADB0C4',  # Світлий бордер для контрасту
-            'border_hover': '#ADB0C4',   # Без hover ефекту
-            'border_pressed': '#ADB0C4', # Без pressed ефекту
-            'bottom_normal': '#9A9FB4',  # Тінь
-            'bottom_hover': '#9A9FB4',   # Без hover ефекту
-            'bottom_pressed': '#9A9FB4', # Без pressed ефекту
+            'border_color': '#413F54',  # Dark border
+            'button_normal': '#9A9FB4',  # Lighter color for visibility
+            'button_hover': '#9A9FB4',   # No hover effect
+            'button_pressed': '#9A9FB4', # No pressed effect
+            'border_normal': '#ADB0C4',  # Light border for contrast
+            'border_hover': '#ADB0C4',   # No hover effect
+            'border_pressed': '#ADB0C4', # No pressed effect
+            'bottom_normal': '#9A9FB4',  # Shadow
+            'bottom_hover': '#9A9FB4',   # No hover effect
+            'bottom_pressed': '#9A9FB4', # No pressed effect
             'text_color': 'white',
             'font_family': 'Minecraftia',
             'has_shadow': True,
-            'animation_enabled': False  # Відключаємо анімацію натискання
+            'animation_enabled': False  # Disable press animation
         }
 
-        # Створюємо справжню Minecraft кнопку
+        # Create real Minecraft button
         self.moving_button = MinecraftButton('', button_config, self)
 
-        # Переконуємося, що кнопка видима
+        # Ensure button is visible
         self.moving_button.show()
-        self.moving_button.raise_()  # Піднімаємо на передній план
+        self.moving_button.raise_()  # Bring to front
 
-        # Початкова позиція (вимкнено - зліва)
+        # Initial position (off - left)
         self.update_button_position()
 
     def mousePressEvent(self, event):
-        """Обробка натискання"""
+        """Handle press"""
         if event.button() == Qt.MouseButton.LeftButton:
-            # Скидаємо hover ефект після натискання
+            # Reset hover effect after press
             self.hover_active = False
             self.toggle_state()
         super().mousePressEvent(event)
 
     def enterEvent(self, event):
-        """Обробка наведення миші"""
+        """Handle mouse enter"""
         self.hover_state = True
         self.update_button_position()
         super().enterEvent(event)
 
     def leaveEvent(self, event):
-        """Обробка виходу миші"""
+        """Handle mouse leave"""
         self.hover_state = False
-        # Відновлюємо можливість hover ефекту при наступному наведенні
+        # Restore hover effect possibility on next enter
         self.hover_active = True
         self.update_button_position()
         super().leaveEvent(event)
 
     def toggle_state(self):
-        """Перемикання стану"""
+        """Toggle state"""
         self.toggled = not self.toggled
         self.update_button_position()
         self.update_toggle_styles()
@@ -210,7 +210,7 @@ class MinecraftToggleButton(QFrame):
         self.stateChanged.emit(self.toggled)
 
     def set_toggled(self, toggled):
-        """Встановлення стану програмно"""
+        """Set state programmatically"""
         if self.toggled != toggled:
             self.toggled = toggled
             self.update_button_position()
@@ -218,40 +218,40 @@ class MinecraftToggleButton(QFrame):
             self.stateChanged.emit(self.toggled)
 
     def is_toggled(self):
-        """Повертає стан перемикача"""
+        """Return toggle state"""
         return self.toggled
 
     def update_button_position(self):
-        """Оновлення позиції рухомої кнопки"""
-        base_x = 0  # Базова позиція
+        """Update moving button position"""
+        base_x = 0  # Base position
 
         if self.toggled:
-            # Увімкнено - справа (зменшено на 2 через зменшення ширини підложки)
-            base_x = 10 * self.scale  # було 12, тепер 10
+            # Enabled - right
+            base_x = 10 * self.scale
             if self.hover_state and self.hover_active:
-                # При наведенні зміщуємо вліво на 2 пікселі (тільки якщо hover активний)
+                # On hover move left by 2 pixels (only if hover is active)
                 button_x = base_x - 2 * self.scale
             else:
                 button_x = base_x
         else:
-            # Вимкнено - зліва
+            # Disabled - left
             base_x = 0 * self.scale
             if self.hover_state and self.hover_active:
-                # При наведенні зміщуємо вправо на 2 пікселі (тільки якщо hover активний)
+                # On hover move right by 2 pixels (only if hover is active)
                 button_x = base_x + 2 * self.scale
             else:
                 button_x = base_x
 
-        button_y = 1 * self.scale  # Тепер у зарезервованому просторі зверху
+        button_y = 1 * self.scale  # Now in reserved space on top
         self.moving_button.move(button_x, button_y)
 
-        # Додаткові перевірки для видимості
+        # Additional checks for visibility
         self.moving_button.show()
         self.moving_button.raise_()
 
     def update_toggle_styles(self):
-        """Оновлення стилів перемикача"""
-        # Кнопка завжди має однаковий колір незалежно від стану перемикача
+        """Update toggle switch styles"""
+        # Button always has same color regardless of toggle state
         self.moving_button.config.update({
             'button_normal': self.config['button_normal'],
             'button_hover': self.config['button_normal'],
@@ -262,15 +262,15 @@ class MinecraftToggleButton(QFrame):
             'bottom_normal': self.config['bottom_normal'],
             'bottom_hover': self.config['bottom_normal'],
             'bottom_pressed': self.config['bottom_normal'],
-            # Переконуємося, що бордери завжди мають правильний колір
+            # Ensure borders always have correct color
             'border_color': '#413F54'
         })
 
-        # Принудительно встановлюємо стан hover=False, pressed=False
+        # Force set hover=False, pressed=False state
         self.moving_button.hover_state = False
         self.moving_button.pressed_state = False
 
-        # Застосовуємо оновлені стилі до кнопки
+        # Apply updated styles to button
         self.moving_button.update_styles()
-        # Верхня частина має колір заднього фону, а не бордера
+        # Top part has background color, not border color
         self.setStyleSheet(f"background-color: #CBCCD4; border-radius: 0px;")

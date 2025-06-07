@@ -1,5 +1,5 @@
 """
-Minecraft-стильна кнопка з підтримкою патернів
+Minecraft-style button with pattern support
 """
 from PyQt6.QtWidgets import QFrame, QPushButton
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -7,25 +7,24 @@ from PyQt6.QtGui import QFont
 
 from managers import ButtonPatternManager
 
-
 class MinecraftButton(QFrame):
     """
-    Базовий клас для Minecraft-стильних кнопок з можливістю кастомізації
-    Підтримує:
-    - Налаштування розмірів головної частини
-    - Анімації натискання
-    - Кольорові схеми
-    - Пропорційне масштабування
-    - Патерни кнопок
+    Base class for Minecraft-style buttons with customization support
+    Features:
+    - Main area size configuration
+    - Press animations
+    - Color schemes
+    - Proportional scaling
+    - Button patterns
     """
     clicked = pyqtSignal()
     def __init__(self, text="", style_config=None, parent=None):
         super().__init__(parent)
 
-        # Дефолтна конфігурація стилю
+        # Default style configuration
         self.default_config = {
-            'button_width': 16,  # Ширина головної частини в пропорційних пікселях
-            'button_height': 15, # Висота головної частини в пропорційних пікселях
+            'button_width': 16,  # Main area width in proportional pixels
+            'button_height': 15, # Main area height in proportional pixels
             'scale': 8,
             'border_color': '#413F54',
             'button_normal': '#9A9FB4',
@@ -42,105 +41,105 @@ class MinecraftButton(QFrame):
             'has_shadow': True,
             'animation_enabled': True
         }
-        # Застосовуємо користувацьку конфігурацію
+        # Apply user configuration
         self.config = self.default_config.copy()
         if style_config:
             self.config.update(style_config)
 
-        # Змінні для патернів
-        self.pattern_name = 'None'  # Назва поточного патерну
-        self.pattern_pixels = []    # Список QFrame елементів для патерну
+        # Pattern variables
+        self.pattern_name = 'None'  # Current pattern name
+        self.pattern_pixels = []    # List of QFrame elements for pattern
 
         self.setup_button()
 
     def setup_button(self):
-        """Налаштування кнопки на основі конфігурації"""
+        """Setup button based on configuration"""
         self.scale = self.config['scale']
 
-        # Розрахунок розмірів на основі головної частини
-        button_width = self.config['button_width']  # пропорційні пікселі
-        button_height = self.config['button_height']  # пропорційні пікселі
+        # Calculate dimensions based on main area
+        button_width = self.config['button_width']  # proportional pixels
+        button_height = self.config['button_height']  # proportional pixels
 
-        # Загальні розміри: бордери (1+1) + головна частина + нижній простір (2)
-        self.base_width = (button_width + 2) * self.scale  # +2 для лівого та правого бордерів
-        self.base_height = (1 + button_height + 2 + 1) * self.scale  # верх + кнопка + простір + низ
+        # Total dimensions: borders (1+1) + main area + bottom space (2)
+        self.base_width = (button_width + 2) * self.scale  # +2 for left and right borders
+        self.base_height = (1 + button_height + 2 + 1) * self.scale  # top + button + space + bottom
         self.setFixedSize(self.base_width, self.base_height)
         self.pressed_state = False
         self.hover_state = False
 
-        # Створюємо всі елементи кнопки
+        # Create all button elements
         self.create_borders()
         self.create_main_button()
-        self.create_pattern()  # Створюємо патерн після основної кнопки
+        self.create_pattern()  # Create pattern after main button
         self.create_bottom_space()
         self.update_styles()
 
     def create_borders(self):
-        """Створення бордерів кнопки"""
+        """Create button borders"""
         border_color = self.config['border_color']
         button_width = self.config['button_width']
         button_height = self.config['button_height']
 
-        # Верхній бордер
+        # Top border
         self.top_border = QFrame(self)
         self.top_border.setGeometry(0, 0, self.base_width, self.scale)
         self.top_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
-        # Лівий бордер
+        # Left border
         self.left_border = QFrame(self)
         self.left_border.setGeometry(0, self.scale, self.scale, (button_height + 2) * self.scale)
         self.left_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
-        # Правий бордер
+        # Right border
         self.right_border = QFrame(self)
         self.right_border.setGeometry((button_width + 1) * self.scale, self.scale, self.scale, (button_height + 2) * self.scale)
         self.right_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
-        # Нижній бордер
+        # Bottom border
         self.bottom_border = QFrame(self)
         self.bottom_border.setGeometry(0, self.base_height - self.scale, self.base_width, self.scale)
         self.bottom_border.setStyleSheet(f"background-color: {border_color}; border-radius: 0px;")
 
     def create_main_button(self):
-        """Створення основної кнопки"""
+        """Create main button"""
         button_width = self.config['button_width']
         button_height = self.config['button_height']
 
-        self.button = QPushButton('', self)  # Завжди без тексту
+        self.button = QPushButton('', self)  # Always without text
         self.button.setGeometry(self.scale, self.scale, button_width * self.scale, button_height * self.scale)
 
-        # Налаштування шрифту
-        font = QFont(self.config['font_family'], 16)  # Фіксований розмір
+        # Font setup
+        font = QFont(self.config['font_family'], 16)  # Fixed size
         self.button.setFont(font)
 
-        # Відключаємо mouse events на кнопці
+        # Disable mouse events on button
         self.button.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
     def create_pattern(self):
-        """Створення патерну на кнопці"""
-        self.clear_pattern()  # Очищаємо попередній патерн
+        """Create pattern on button"""
+        self.clear_pattern()  # Clear previous pattern
 
         patterns = ButtonPatternManager.get_patterns()
         colors = ButtonPatternManager.get_pattern_colors()
 
         if self.pattern_name not in patterns or patterns[self.pattern_name] is None:
-            return  # Немає патерну
+            return  # No pattern
 
         pattern_data = patterns[self.pattern_name]
         button_width = self.config['button_width']
         button_height = self.config['button_height']
 
-        # Створюємо пікселі патерну всередині кнопки (починаємо після бордера)
-        max_rows = min(button_height, len(pattern_data))  # Обмежуємо висотою кнопки
+        # Create pattern pixels inside button (start after border)
+        max_rows = min(button_height, len(pattern_data))  # Limit by button height
         for row_idx in range(max_rows):
             row = pattern_data[row_idx]
-            max_cols = min(button_width, len(row))  # Обмежуємо шириною кнопки
+            max_cols = min(button_width, len(row))  # Limit by button width
             for col_idx in range(max_cols):
                 symbol = row[col_idx]
-                if symbol != '0':  # Не прозорий піксель
+                if symbol != '0':  # Not transparent pixel
                     color = colors.get(symbol)
                     if color:
-                        # Позиція пікселя (починаємо після лівого та верхнього бордерів)
-                        pixel_x = (1 + col_idx) * self.scale  # +1 для лівого бордера
-                        pixel_y = (1 + row_idx) * self.scale  # +1 для верхнього бордера
+                        # Pixel position (start after left and top borders)
+                        pixel_x = (1 + col_idx) * self.scale  # +1 for left border
+                        pixel_y = (1 + row_idx) * self.scale  # +1 for top border
 
                         pixel = QFrame(self)
                         pixel.setGeometry(pixel_x, pixel_y, self.scale, self.scale)
@@ -150,22 +149,22 @@ class MinecraftButton(QFrame):
                         self.pattern_pixels.append(pixel)
 
     def clear_pattern(self):
-        """Очищення попереднього патерну"""
+        """Clear previous pattern"""
         for pixel in self.pattern_pixels:
             pixel.deleteLater()
         self.pattern_pixels.clear()
 
     def set_pattern(self, pattern_name):
-        """Встановлення нового патерну"""
+        """Set new pattern"""
         self.pattern_name = pattern_name
         self.create_pattern()
 
     def update_pattern_position(self, offset_y=0):
-        """Оновлення позиції патерну (для анімації натискання)"""
+        """Update pattern position (for press animation)"""
         if not self.pattern_pixels:
             return
 
-        # Перерахунок позицій всіх пікселів патерну
+        # Recalculate positions of all pattern pixels
         patterns = ButtonPatternManager.get_patterns()
         if self.pattern_name not in patterns or patterns[self.pattern_name] is None:
             return
@@ -182,7 +181,7 @@ class MinecraftButton(QFrame):
             for col_idx in range(max_cols):
                 symbol = row[col_idx]
                 if symbol != '0' and pixel_index < len(self.pattern_pixels):
-                    # Нова позиція з урахуванням зміщення
+                    # New position with offset
                     pixel_x = (1 + col_idx) * self.scale
                     pixel_y = (1 + row_idx + offset_y) * self.scale
 
@@ -190,7 +189,7 @@ class MinecraftButton(QFrame):
                     pixel_index += 1
 
     def create_bottom_space(self):
-        """Створення нижнього простору (тінь)"""
+        """Create bottom space (shadow)"""
         button_width = self.config['button_width']
         button_height = self.config['button_height']
 
@@ -198,13 +197,13 @@ class MinecraftButton(QFrame):
         self.bottom_space.setGeometry(self.scale, (1 + button_height) * self.scale, button_width * self.scale, 2 * self.scale)
 
     def mousePressEvent(self, event):
-        """Обробка натискання миші"""
+        """Handle mouse press"""
         if event.button() == Qt.MouseButton.LeftButton and self.config['animation_enabled']:
             self.on_pressed()
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """Обробка відпускання миші"""
+        """Handle mouse release"""
         if event.button() == Qt.MouseButton.LeftButton:
             if self.config['animation_enabled']:
                 self.on_released()
@@ -213,42 +212,42 @@ class MinecraftButton(QFrame):
         super().mouseReleaseEvent(event)
 
     def enterEvent(self, event):
-        """Обробка наведення миші"""
+        """Handle mouse enter"""
         self.hover_state = True
         self.update_styles()
         super().enterEvent(event)
 
     def leaveEvent(self, event):
-        """Обробка виходу миші"""
+        """Handle mouse leave"""
         self.hover_state = False
         self.update_styles()
         super().leaveEvent(event)
 
     def on_pressed(self):
-        """Анімація натискання"""
+        """Press animation"""
         self.pressed_state = True
         button_width = self.config['button_width']
         button_height = self.config['button_height']
-        # Кнопка зміщується вниз на 1 пропорційний піксель
+        # Button moves down by 1 proportional pixel
         self.button.setGeometry(self.scale, 2 * self.scale, button_width * self.scale, button_height * self.scale)
-        # Bottom space зменшується на 1 пропорційний піксель
+        # Bottom space decreases by 1 proportional pixel
         self.bottom_space.setGeometry(self.scale, (2 + button_height) * self.scale, button_width * self.scale, self.scale)
-        # Патерн також зміщується вниз
+        # Pattern also moves down
         self.update_pattern_position(offset_y=1)
         # Make top border match background color
         self.top_border.setStyleSheet("background-color: #CBCCD4; border-radius: 0px;")
         self.update_styles()
 
     def on_released(self):
-        """Відновлення після натискання"""
+        """Restore after press"""
         self.pressed_state = False
         button_width = self.config['button_width']
         button_height = self.config['button_height']
 
-        # Повертаємо кнопку і простір до нормального стану
+        # Return button and space to normal state
         self.button.setGeometry(self.scale, self.scale, button_width * self.scale, button_height * self.scale)
         self.bottom_space.setGeometry(self.scale, (1 + button_height) * self.scale, button_width * self.scale, 2 * self.scale)
-        # Повертаємо патерн до нормальної позиції
+        # Return pattern to normal position
         self.update_pattern_position(offset_y=0)
 
         # Restore top border color
@@ -256,7 +255,7 @@ class MinecraftButton(QFrame):
         self.update_styles()
 
     def update_styles(self):
-        """Оновлення стилів на основі стану"""
+        """Update styles based on state"""
         if self.pressed_state:
             button_bg = self.config['button_pressed']
             border_color = self.config['border_pressed']
@@ -270,7 +269,7 @@ class MinecraftButton(QFrame):
             border_color = self.config['border_normal']
             bottom_color = self.config['bottom_normal']
 
-        # Стилі кнопки
+        # Button styles
         button_style = f"""
         QPushButton {{
             border: {self.scale}px solid {border_color};
