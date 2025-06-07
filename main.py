@@ -5,7 +5,7 @@ import sys
 import os
 from PyQt6.QtWidgets import QApplication
 
-from widgets.button_generator import ButtonGenerator
+from widgets.widget_generator import WidgetGenerator
 
 def main():
     """Головна функція запуску програми"""
@@ -13,13 +13,13 @@ def main():
 
     try:
         # Діагностичний вивід
-        print("Створюємо ButtonGenerator...")
-        generator = ButtonGenerator()
-        print(f"ButtonGenerator створений: {type(generator)}")
+        print("Створюємо WidgetGenerator...")
+        generator = WidgetGenerator()
+        print(f"WidgetGenerator створений: {type(generator)}")
 
         # Встановлюємо мінімальний розмір
         generator.resize(800, 600)
-        generator.setWindowTitle("Minecraft Button Generator v2.0")
+        generator.setWindowTitle("Minecraft Widget Generator v2.0")
 
         print("Показуємо вікно...")
         generator.show()

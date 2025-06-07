@@ -6,7 +6,7 @@ from .minecraft_radio_button import MinecraftRadioButton, MinecraftRadioGroup
 from .minecraft_toggle_button import MinecraftToggleButton
 from .minecraft_slider import MinecraftSlider
 from .minecraft_entry import MinecraftEntry
-from .button_generator import ButtonGenerator
+from .widget_generator import WidgetGenerator
 
 __all__ = [
     'MinecraftButton',
